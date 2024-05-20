@@ -15,7 +15,7 @@ class Minion extends Shape {
 
         // Define transformations
         const ellipsoid_transform = Mat4.scale(0.5, 0.75, 0.5); // Scale the sphere to form an ellipsoid
-        const circle_transform = Mat4.translation(0, 1.85, 0).times(Mat4.scale(0.25, 0.25, 0.25)); // Position and scale the circle
+        const circle_transform = Mat4.translation(0, 1, 0).times(Mat4.scale(0.25, 0.25, 0.25)); // Position and scale the circle
 
         // Initialize arrays
         this.arrays.position = [];
@@ -65,6 +65,7 @@ export class Assignment3 extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")})
         }
 
+        this.map_size = 15;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
@@ -102,9 +103,10 @@ export class Assignment3 extends Scene {
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         const green = hex_color("#29a651");
         let surface_transform = Mat4.identity()
-                .times(Mat4.scale(10,10,10))
+                .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
                 .times(Mat4.rotation(Math.PI/2,1,0,0))
             .times(Mat4.rotation(Math.PI/4,0,0,1));
+
 
 
         let minion_transform = Mat4.identity();
