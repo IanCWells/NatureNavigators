@@ -72,6 +72,11 @@ export class Assignment3 extends Scene {
         this.sun_speed = 0.5;
         this.sun_rad = 12;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+
+
+        this.speed = 1;
+        this.minion_position = vec3(0, 0, 0);
+        this.last_update_time = null;
     }
     get_background_color() {
         return this.background_color;
@@ -87,6 +92,8 @@ export class Assignment3 extends Scene {
         this.key_triggered_button("Attach to planet 4", ["Control", "4"], () => this.attached = () => this.planet_4);
         this.new_line();
         this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
+
+        this.create_input_box("Speed", "speed", this.speed);
     }
 //color(0.5, 0.8, 0.93, 1)
     display(context, program_state) {
@@ -103,13 +110,14 @@ export class Assignment3 extends Scene {
 
         // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 3 and 4)
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
+
         const green = hex_color("#29a651");
         let surface_transform = Mat4.identity()
                 .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
                 .times(Mat4.rotation(Math.PI/2,1,0,0))
             .times(Mat4.rotation(Math.PI/4,0,0,1));
 
-
+        
         let n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
 
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
@@ -123,7 +131,16 @@ export class Assignment3 extends Scene {
         let sun_transform = Mat4.identity();
         sun_transform = sun_transform.times(Mat4.rotation(n,0,0,1));
         sun_transform = sun_transform.times(Mat4.translation(0,this.sun_rad,0));
-        let minion_transform = Mat4.identity();
+        // let minion_transform = Mat4.identity()
+                // .translation(0, 0, 0);'
+        // let minion_transform = Mat4.identity()
+        //         .times(Mat4.translation(this.speed*t,0,0));
+
+        this.minion_position = this.minion_position.plus(vec3(this.speed * dt, 0, 0));
+        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2]);
+        
+
+
         const red = hex_color("#ff5555");
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));

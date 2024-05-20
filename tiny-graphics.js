@@ -1427,6 +1427,25 @@ const Scene = tiny.Scene =
             this.key_controls.add(shortcut_combination, press, release);
         }
 
+        // INPUT BOXES HERE 
+        create_input_box(label, variable_name, initial_value, parent = this.control_panel) {
+            const container = parent.appendChild(document.createElement("div"));
+            const label_element = container.appendChild(document.createElement("label"));
+            label_element.textContent = label + ": ";
+    
+            const input = container.appendChild(document.createElement("input"));
+            input.type = "number";
+            input.value = initial_value;
+            input.style.marginLeft = "10px";
+    
+            input.addEventListener("input", (event) => {
+                const value = parseFloat(event.target.value);
+                if (!isNaN(value)) {
+                    this[variable_name] = value;
+                }
+            });
+        }
+
         // To use class Scene, override at least one of the below functions,
         // which will be automatically called by other classes:
         display(context, program_state) {
