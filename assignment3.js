@@ -67,13 +67,15 @@ export class Assignment3 extends Scene {
             sunMat: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#FDB813")})
         }
-
+        this.background_color = color(0.5, 0.8, 0.93, 1);
         this.map_size = 15;
         this.sun_speed = 0.5;
         this.sun_rad = 12;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
-
+    get_background_color() {
+        return this.background_color;
+    }
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => null);
@@ -86,7 +88,7 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
     }
-
+//color(0.5, 0.8, 0.93, 1)
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
