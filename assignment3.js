@@ -56,16 +56,21 @@ export class Assignment3 extends Scene {
             sphere: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
             surface: new defs.Regular_2D_Polygon(10, 4),
-            creature1: new Minion()
+            creature1: new Minion(),
+            sun: new defs.Subdivision_Sphere(4)
         };
 
         // *** Materials
         this.materials = {
             test: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")})
+                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+            sunMat: new Material(new defs.Phong_Shader(),
+                {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#FDB813")})
         }
 
         this.map_size = 15;
+        this.sun_speed = 0.5;
+        this.sun_rad = 12;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
     }
 
@@ -94,11 +99,6 @@ export class Assignment3 extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
-        // TODO: Lighting (Requirement 2)
-        const light_position = vec4(0, 5, 5, 1);
-        // The parameters of the Light are: position, color, size
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
-
         // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 3 and 4)
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         const green = hex_color("#29a651");
@@ -108,11 +108,24 @@ export class Assignment3 extends Scene {
             .times(Mat4.rotation(Math.PI/4,0,0,1));
 
 
+        let n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
 
+        let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
+        let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
+
+        let light_position = vec4(0, 0, 0, 1);
+        let translated_position = translationMatrix.times(light_position);
+        let rotated_light_position = rotationMatrix.times(translated_position);
+
+        program_state.lights = [new Light(rotated_light_position, color(1, 1, 1, 1), 10000)];
+        let sun_transform = Mat4.identity();
+        sun_transform = sun_transform.times(Mat4.rotation(n,0,0,1));
+        sun_transform = sun_transform.times(Mat4.translation(0,this.sun_rad,0));
         let minion_transform = Mat4.identity();
         const red = hex_color("#ff5555");
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
+        this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat)
     }
 }
 
