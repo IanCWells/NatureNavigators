@@ -14,10 +14,12 @@ class Minion extends Shape {
         const circle = new defs.Subdivision_Sphere(4); // Adjust the subdivisions for the desired smoothness
 
         // Define transformations
-        const ellipsoid_transform = Mat4.scale(0.5, 0.75, 0.5); // Scale the sphere to form an ellipsoid
-        const circle_transform = Mat4.translation(0, 1, 0).times(Mat4.scale(0.25, 0.25, 0.25)); // Position and scale the circle
+        const ellipsoid_transform = Mat4.translation(0, .59, 0)
+                .times(Mat4.scale(0.5, 0.75, 0.5)); // Scale the sphere to form an ellipsoid
+        const circle_transform = Mat4.translation(0, 1.58, 0)
+                .times(Mat4.scale(0.25, 0.25, 0.25)); // Position and scale the circle
 
-        // Initialize arrays
+        // Initialize arrays.plus(Mat4.translation(0,1.29,0))
         this.arrays.position = [];
         this.arrays.normal = [];
         this.arrays.texture_coord = [];
@@ -137,10 +139,9 @@ export class Assignment3 extends Scene {
         //         .times(Mat4.translation(this.speed*t,0,0));
 
         this.minion_position = this.minion_position.plus(vec3(this.speed * dt, 0, 0));
-        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2]);
+        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2])
+                // .plus(Mat4.translation(0,1.29,0));
         
-
-
         const red = hex_color("#ff5555");
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
