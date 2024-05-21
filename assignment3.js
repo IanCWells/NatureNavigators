@@ -46,6 +46,39 @@ class Minion extends Shape {
     }
 }
 
+
+
+class Food extends Shape {
+    constructor() {
+        super("positions", "normals", "texture_coords");
+        // Create the sphere with desired subdivisions for smoothness
+        const sphere = new defs.Subdivision_Sphere(4); // Adjust the subdivisions for the desired smoothness
+        // Define the scaling transformation
+
+        let food_scale = 0.3;
+        const scale_transform = Mat4.translation(0,0.26,0)
+                .times(Mat4.scale(food_scale, food_scale, food_scale));
+
+        // Initialize arrays
+        this.arrays.position = [];
+        this.arrays.normal = [];
+        this.arrays.texture_coord = [];
+        this.indices = [];
+
+        // Transform and add the sphere vertices
+        for (let i = 0; i < sphere.arrays.position.length; i++) {
+            // Apply the scaling transformation to the positions
+            this.arrays.position.push(scale_transform.times(sphere.arrays.position[i].to4(1)).to3());
+            // Normals do not need scaling transformation; they remain unit vectors
+            this.arrays.normal.push(sphere.arrays.normal[i]);
+            this.arrays.texture_coord.push(sphere.arrays.texture_coord[i]);
+
+        }
+        // Add the sphere indices
+        this.indices.push(...sphere.indices);
+    }
+}
+
 export class Assignment3 extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -59,7 +92,8 @@ export class Assignment3 extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             surface: new defs.Regular_2D_Polygon(10, 4),
             creature1: new Minion(),
-            sun: new defs.Subdivision_Sphere(4)
+            sun: new defs.Subdivision_Sphere(4),
+            food1: new Food(),
         };
 
         // *** Materials
@@ -67,8 +101,12 @@ export class Assignment3 extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             sunMat: new Material(new defs.Phong_Shader(),
-                {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#FDB813")})
-        }
+                {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#FDB813")}),
+                
+            foodMat: new Material(new defs.Phong_Shader(),
+                   {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
+
+        };
         this.background_color = color(0.5, 0.8, 0.93, 1);
         this.map_size = 15;
         this.sun_speed = 0.5;
@@ -146,6 +184,13 @@ export class Assignment3 extends Scene {
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
         this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat)
+
+        
+        let food_transform = Mat4.identity();
+        food_transform = food_transform.times(Mat4.translation(1,0,0));
+        this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
+
+        //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
 }
 
