@@ -117,10 +117,28 @@ export class Assignment3 extends Scene {
         this.speed = 1;
         this.minion_position = vec3(0, 0, 0);
         this.last_update_time = null;
+
+        this.food_positions = this.generate_food_positions(10); // Generate positions for 10 food items
     }
     get_background_color() {
         return this.background_color;
     }
+
+
+    generate_food_positions(count) {
+        const positions = [];
+        for (let i = 0; i < count; i++) {
+            const x = Math.random() * this.map_size - this.map_size / 2;
+            console.log(x)
+            const y = 0;
+            const z = Math.random() * this.map_size - this.map_size / 2;
+            positions.push(vec3(x, y, z));
+        }
+        return positions;
+    }
+
+
+
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => null);
@@ -186,10 +204,13 @@ export class Assignment3 extends Scene {
         this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat)
 
         
-        let food_transform = Mat4.identity();
-        food_transform = food_transform.times(Mat4.translation(1,0,0));
-        this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
-
+        // let food_transform = Mat4.identity();
+        // food_transform = food_transform.times(Mat4.translation(1,0,0));
+        // this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
+        for (let pos of this.food_positions) {
+            let food_transform = Mat4.translation(pos[0], pos[1], pos[2]);
+            this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
+        }
         //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
 }
