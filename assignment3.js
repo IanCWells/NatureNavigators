@@ -21,9 +21,16 @@ class Minion extends Shape {
 
         // Initialize arrays.plus(Mat4.translation(0,1.29,0))
         this.arrays.position = [];
+
+
         this.arrays.normal = [];
         this.arrays.texture_coord = [];
         this.indices = [];
+
+        this.movement_speed = vec3(0, 0, 0);
+
+        this.xProb_adjustment = 0;
+        this.zProb_adjustment = 0;
 
         // Transform and add the ellipsoid vertices
         for (let i = 0; i < ellipsoid.arrays.position.length; i++) {
@@ -43,10 +50,52 @@ class Minion extends Shape {
         this.indices.push(...ellipsoid.indices);
         const circle_offset = ellipsoid.arrays.position.length;
         this.indices.push(...circle.indices.map(i => i + circle_offset));
+
+
     }
+
+    movement() {
+
+        let movement_prob = Math.random()*2;
+        let movement_x = 0;
+        let movement_z = 0;
+
+        //If x_prob > 0, there are more food items to the right than left of our creature
+        //If z_prob > 0, there are more food items to the top than bottom of our creature
+
+        //move to the right
+
+        console.log(this.xProb_adjustment);
+        if(movement_prob >= 0 && movement_prob < (0.5 + this.xProb_adjustment)){
+            movement_x = .06;
+        }
+        //move to the left
+        if(movement_prob >= (0.5 + this.xProb_adjustment) && movement_prob < 1){
+            movement_x = -0.06;
+        }
+
+        //move up
+        if(movement_prob >= 1 && movement_prob < (1.5 + this.zProb_adjustment)){
+            movement_z = 0.06;
+        }
+        //move down
+        if(movement_prob >= (1.5 + this.zProb_adjustment) && movement_prob < 2.00){
+            movement_z = -0.06;
+        }
+        let movement_vector = vec3(movement_x, 0, movement_z);
+
+        return movement_vector;
+    }
+    adjustProb(x_prob, z_prob){
+        //If x_prob > 0, there are more food items to the right than left of our creature
+        //If z_prob > 0, there are more food items to the top than bottom of our creature
+        let prob_adjustment_factor = 1;
+        this.xProb_adjustment = x_prob*0.0001;// * prob_adjustment_factor;
+        this.zProb_adjustment = z_prob*0.0001;// * prob_adjustment_factor;
+    }
+
+
 }
-
-
 
 class Food extends Shape {
     constructor() {
@@ -92,6 +141,9 @@ export class Assignment3 extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             surface: new defs.Regular_2D_Polygon(10, 4),
             creature1: new Minion(),
+            creature2: new Minion(),
+            creature3: new Minion(),
+            creature4: new Minion(),
             sun: new defs.Subdivision_Sphere(4),
             food1: new Food(),
         };
@@ -106,12 +158,22 @@ export class Assignment3 extends Scene {
             foodMat: new Material(new defs.Phong_Shader(),
                    {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
 
+            species1: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#ff5555")}),
+            species2: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#a020f0")}),
+            species3: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#FFFF00")}),
+            species4: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#0066FF")}),
+
         };
         this.background_color = color(0.5, 0.8, 0.93, 1);
         this.map_size = 15;
         this.sun_speed = 0.5;
         this.sun_rad = 12;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.day = 0;
 
 
         this.speed = 1;
@@ -119,6 +181,8 @@ export class Assignment3 extends Scene {
         this.last_update_time = null;
 
         this.food_positions = this.generate_food_positions(10); // Generate positions for 10 food items
+
+
     }
     get_background_color() {
         return this.background_color;
@@ -130,15 +194,13 @@ export class Assignment3 extends Scene {
         for (let i = 0; i < count; i++) {
             // Random value between -map_size/2 and map_size/2
             const x = Math.random() * this.map_size - this.map_size / 2;
-            console.log(x)
+          //  console.log(x)
             const y = 0;
             const z = Math.random() * this.map_size - this.map_size / 2;
             positions.push(vec3(x, y, z));
         }
         return positions;
     }
-
-
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -153,6 +215,7 @@ export class Assignment3 extends Scene {
         this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
 
         this.create_input_box("Speed", "speed", this.speed);
+
     }
 //color(0.5, 0.8, 0.93, 1)
     display(context, program_state) {
@@ -167,7 +230,6 @@ export class Assignment3 extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
-        // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 3 and 4)
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
 
         const green = hex_color("#29a651");
@@ -176,8 +238,18 @@ export class Assignment3 extends Scene {
                 .times(Mat4.rotation(Math.PI/2,1,0,0))
             .times(Mat4.rotation(Math.PI/4,0,0,1));
 
-        
-        let n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
+
+        let n = 0;
+        if(this.day == 0){
+            n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
+        }
+        else{
+            n = Math.PI/2;
+        }
+        if(n >= Math.PI/2 - 0.01){
+            this.day += 1;
+            n = Math.PI/2;//n *-1;
+        }
 
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
@@ -190,19 +262,38 @@ export class Assignment3 extends Scene {
         let sun_transform = Mat4.identity();
         sun_transform = sun_transform.times(Mat4.rotation(n,0,0,1));
         sun_transform = sun_transform.times(Mat4.translation(0,this.sun_rad,0));
-        // let minion_transform = Mat4.identity()
-                // .translation(0, 0, 0);'
-        // let minion_transform = Mat4.identity()
-        //         .times(Mat4.translation(this.speed*t,0,0));
 
-        this.minion_position = this.minion_position.plus(vec3(this.speed * dt, 0, 0));
-        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2])
-                // .plus(Mat4.translation(0,1.29,0));
-        
+        //Math.random()
+
+
+
+        //this.minion_position = this.minion_position.plus(vec3(0, 0, 0));
+        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2]);
+
         const red = hex_color("#ff5555");
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
         this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat)
+
+
+
+
+        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement_speed);
+
+        let adjusted_time = t*4;
+        if (Math.floor(adjusted_time) % 2 === 0) {
+            this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
+        }
+        //this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
+
+
+        //Updates Creature position every tick
+        this.shapes.creature1.position = this.minion_position;
+
+
+
+       // this.shapes.creature1.setPosition(this.minion_position);
+
 
         
         // let food_transform = Mat4.identity();
@@ -211,6 +302,63 @@ export class Assignment3 extends Scene {
         for (let pos of this.food_positions) {
             let food_transform = Mat4.translation(pos[0], pos[1], pos[2]);
             this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
+        }
+
+        //food is counted to the left right, top or bottom with respect to a creature, adjusting probabilty
+        let food_count_right = 0
+        let food_count_left = 0
+        let food_count_top = 0
+        let food_count_bottom = 0
+
+        for (let pos of this.food_positions) {
+            let food_x = pos[0];
+            let food_y = pos[1];
+            let food_z = pos[2];
+            //food is to the left of a creature
+            if(this.shapes.creature1.position[0] > food_x){
+                //Should be inverse multiplier
+                //If creature is max distance away 15, then distance multiplier is 15 - 15 = 0, so it doesnt add much
+                //to the probability
+                //If a creature is close, say 0 units, then distance multiplier is 15 - 0 = 15, so it counts much more towards probability
+                let distance_multiplier = (this.map_size) - (this.shapes.creature1.position[0] - food_x);
+
+                distance_multiplier *= 50;
+                if(distance_multiplier < 0){
+                    distance_multiplier = 0
+                }
+                food_count_right += (distance_multiplier);
+
+            }
+            //food is to the right of a creature
+            if(this.shapes.creature1.position[0] < food_x){
+                let distance_multiplier = (this.map_size) - (food_x - this.shapes.creature1.position[0]);
+                distance_multiplier *= 50;
+                if(distance_multiplier < 0){
+                    distance_multiplier = 0
+                }
+                food_count_left += (distance_multiplier);
+                //console.log("left" + food_count_left)
+            }
+            if(this.shapes.creature1.position[2] > food_z){
+
+                let distance_multiplier = (this.map_size) - (this.shapes.creature1.position[2] - food_z);
+                distance_multiplier *= 50;
+                if(distance_multiplier < 0){
+                    distance_multiplier = 0
+                }
+                food_count_top += (distance_multiplier);
+
+            }
+            if(this.shapes.creature1.position[2] < food_z){
+                let distance_multiplier = (this.map_size) - (food_z - this.shapes.creature1.position[2]);
+                distance_multiplier *= 50;
+                if(distance_multiplier < 0){
+                    distance_multiplier = 0
+                }
+                food_count_bottom += (distance_multiplier);
+            }
+
+            this.shapes.creature1.adjustProb(food_count_left - food_count_right, food_count_bottom - food_count_top);
         }
         //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
