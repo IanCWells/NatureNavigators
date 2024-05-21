@@ -128,6 +128,7 @@ export class Assignment3 extends Scene {
     generate_food_positions(count) {
         const positions = [];
         for (let i = 0; i < count; i++) {
+            // Random value between -map_size/2 and map_size/2
             const x = Math.random() * this.map_size - this.map_size / 2;
             console.log(x)
             const y = 0;
