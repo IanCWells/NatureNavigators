@@ -250,7 +250,8 @@ export class Assignment3 extends Scene {
             this.day += 1;
             n = Math.PI/2;//n *-1;
         }
-
+        let sky_color = Math.abs(Math.cos(t*this.sun_speed));
+        this.background_color = color(sky_color,0.5,sky_color,1);
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
 
