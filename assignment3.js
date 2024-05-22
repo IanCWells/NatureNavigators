@@ -57,7 +57,7 @@ export class Assignment3 extends Scene {
         this.map_size = 15;
         this.sun_speed = 0.5;
         this.sun_rad = 12;
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 22), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
 
 
@@ -228,6 +228,20 @@ export class Assignment3 extends Scene {
         //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
 
+    check_eaten_food() {
+        // for each minion, check if its near enough to each piece of food to eat it
+        // if food is eaten, remove it from map and add energy to minion
+        var remaining_food = this.food_positions;
+        for (var i = 0; i < this.food_positions.length; i++) {
+            let minion_to_food_dist = this.minion_position.minus(this.food_positions[i]).norm();
+            if (minion_to_food_dist < (this.shapes.creature1.radius + this.shapes.food1.radius)) {
+                this.shapes.creature1.energy += 1;
+                remaining_food = remaining_food.splice(i,1);
+                console.log(this.shapes.creature1.energy);
+            }
+        }
+    }
+
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
@@ -247,7 +261,7 @@ export class Assignment3 extends Scene {
         this.draw_food(context,program_state);
         this.set_background_color(t);
         this.draw_minions(context,program_state, t);
-
+        this.check_eaten_food();
     }
 }
 

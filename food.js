@@ -25,6 +25,8 @@ class Food extends Shape {
         this.arrays.texture_coord = [];
         this.indices = [];
 
+        this.radius = food_scale;
+
         // Transform and add the sphere vertices
         for (let i = 0; i < sphere.arrays.position.length; i++) {
             // Apply the scaling transformation to the positions

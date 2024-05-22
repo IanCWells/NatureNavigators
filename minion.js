@@ -33,6 +33,8 @@ class Minion extends Shape {
         this.indices = [];
 
         this.movement_speed = vec3(0, 0, 0);
+        this.radius = 0.5;
+        this.energy = 10;
 
         this.xProb_adjustment = 0;
         this.zProb_adjustment = 0;
@@ -70,7 +72,6 @@ class Minion extends Shape {
 
         //move to the right
 
-        console.log(this.xProb_adjustment);
         if(movement_prob >= 0 && movement_prob < (0.5 + this.xProb_adjustment)){
             movement_x = .06;
         }
