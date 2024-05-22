@@ -1346,7 +1346,7 @@ const Webgl_Manager = tiny.Webgl_Manager =
             const gl = this.context;
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             // Clear the canvas's pixels and z-buffer.
-
+            gl.clearColor.apply(gl, this.scenes[0].get_background_color());
             const open_list = [...this.scenes];
             while (open_list.length) {
                 // Traverse all Scenes and their children, recursively.
