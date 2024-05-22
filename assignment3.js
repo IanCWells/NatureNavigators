@@ -41,7 +41,8 @@ export class Assignment3 extends Scene {
                 
             foodMat: new Material(new defs.Phong_Shader(),
                    {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
-
+            grass: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#29a651")}),
             species1: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ff5555")}),
             species2: new Material(new defs.Phong_Shader(),
@@ -102,27 +103,15 @@ export class Assignment3 extends Scene {
 
     }
 
-    display(context, program_state) {
-        // display():  Called once per frame of animation.
-        // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
-        if (!context.scratchpad.controls) {
-            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
-            // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(this.initial_camera_location);
-        }
-
-        program_state.projection_transform = Mat4.perspective(
-            Math.PI / 4, context.width / context.height, .1, 1000);
-
-        const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-
-        const green = hex_color("#29a651");
+    draw_grass(context, program_state) {
         let surface_transform = Mat4.identity()
-                .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
-                .times(Mat4.rotation(Math.PI/2,1,0,0))
+            .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
+            .times(Mat4.rotation(Math.PI/2,1,0,0))
             .times(Mat4.rotation(Math.PI/4,0,0,1));
+        this.shapes.surface.draw(context, program_state, surface_transform, this.materials.grass);
+    }
 
-
+    draw_sun(context, program_state, t) {
         let n = 0;
         if(this.day == 0){
             n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
@@ -134,8 +123,7 @@ export class Assignment3 extends Scene {
             this.day += 1;
             n = Math.PI/2;//n *-1;
         }
-        let sky_color = Math.abs(Math.cos(t*this.sun_speed));
-        this.background_color = color(sky_color,0.5,sky_color,1);
+
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
 
@@ -147,21 +135,19 @@ export class Assignment3 extends Scene {
         let sun_transform = Mat4.identity();
         sun_transform = sun_transform.times(Mat4.rotation(n,0,0,1));
         sun_transform = sun_transform.times(Mat4.translation(0,this.sun_rad,0));
+        this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat);
+    }
 
-        //Math.random()
+    set_background_color(t) {
+        let sky_color = Math.abs(Math.cos(t*this.sun_speed));
+        this.background_color = color(sky_color,0.5,sky_color,1);
+    }
 
-
-
+    draw_minions(context, program_state, t) {
         //this.minion_position = this.minion_position.plus(vec3(0, 0, 0));
         let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2]);
 
-        const red = hex_color("#ff5555");
-        this.shapes.surface.draw(context, program_state, surface_transform, this.materials.test.override({color: green}));
-        this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
-        this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat)
-
-
-
+        this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.species1);
 
         this.minion_position = this.minion_position.plus(this.shapes.creature1.movement_speed);
 
@@ -171,16 +157,11 @@ export class Assignment3 extends Scene {
         }
         //this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
 
-
         //Updates Creature position every tick
         this.shapes.creature1.position = this.minion_position;
 
+        // this.shapes.creature1.setPosition(this.minion_position);
 
-
-       // this.shapes.creature1.setPosition(this.minion_position);
-
-
-        
         // let food_transform = Mat4.identity();
         // food_transform = food_transform.times(Mat4.translation(1,0,0));
         // this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
@@ -246,6 +227,27 @@ export class Assignment3 extends Scene {
             this.shapes.creature1.adjustProb(food_count_left - food_count_right, food_count_bottom - food_count_top);
         }
         //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
+    }
+
+    display(context, program_state) {
+        // display():  Called once per frame of animation.
+        // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
+        if (!context.scratchpad.controls) {
+            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+            // Define the global camera and projection matrices, which are stored in program_state.
+            program_state.set_camera(this.initial_camera_location);
+        }
+
+        program_state.projection_transform = Mat4.perspective(
+            Math.PI / 4, context.width / context.height, .1, 1000);
+
+        const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
+
+        this.draw_sun(context,program_state, t);
+        this.draw_grass(context,program_state);
+        this.set_background_color(t);
+        this.draw_minions(context,program_state, t);
+
     }
 }
 
