@@ -138,6 +138,13 @@ export class Assignment3 extends Scene {
         this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat);
     }
 
+    draw_food(context, program_state) {
+        for (let pos of this.food_positions) {
+            let food_transform = Mat4.translation(pos[0], pos[1], pos[2]);
+            this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
+        }
+    }
+
     set_background_color(t) {
         let sky_color = Math.abs(Math.cos(t*this.sun_speed));
         this.background_color = color(sky_color,0.5,sky_color,1);
@@ -161,14 +168,6 @@ export class Assignment3 extends Scene {
         this.shapes.creature1.position = this.minion_position;
 
         // this.shapes.creature1.setPosition(this.minion_position);
-
-        // let food_transform = Mat4.identity();
-        // food_transform = food_transform.times(Mat4.translation(1,0,0));
-        // this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
-        for (let pos of this.food_positions) {
-            let food_transform = Mat4.translation(pos[0], pos[1], pos[2]);
-            this.shapes.food1.draw(context, program_state, food_transform, this.materials.foodMat);
-        }
 
         //food is counted to the left right, top or bottom with respect to a creature, adjusting probabilty
         let food_count_right = 0
@@ -245,6 +244,7 @@ export class Assignment3 extends Scene {
 
         this.draw_sun(context,program_state, t);
         this.draw_grass(context,program_state);
+        this.draw_food(context,program_state);
         this.set_background_color(t);
         this.draw_minions(context,program_state, t);
 
