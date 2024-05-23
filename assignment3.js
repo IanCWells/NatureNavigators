@@ -53,7 +53,7 @@ export class Assignment3 extends Scene {
         this.background_color = color(0.5, 0.8, 0.93, 1);
         this.map_size = 30;
         this.sun_speed = 0.5;
-        this.sun_rad = 12;
+        this.sun_rad = this.map_size - 5;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 22), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
 
@@ -209,7 +209,7 @@ export class Assignment3 extends Scene {
 
 
             let closestFood = vec3(0,0,0)
-            let shortDistance = 15
+            let shortDistance = this.map_size
             for (let pos of this.food_positions) {
                 let food_x = pos[0];
                 let food_y = pos[1];
