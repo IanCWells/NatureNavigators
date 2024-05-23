@@ -58,7 +58,6 @@ export class Assignment3 extends Scene {
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
 
-
         this.speed = 1;
         this.minion_position = vec3(0, 0, 0);
         this.last_update_time = null;
@@ -144,16 +143,7 @@ export class Assignment3 extends Scene {
 
     draw_sun(context, program_state,t, is_new_day=false) {
         let n = 0;
-        if(is_new_day){
-            n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
-        }
-        else{
-            n = Math.PI/2;
-        }
-        if(n >= Math.PI/2 - 0.01){
-            //this.day += 1;
-            n = Math.PI/2;//n *-1;
-        }
+        n =  -Math.PI/2 * Math.cos((t%this.day_length)*Math.PI/this.day_length);
 
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
@@ -275,7 +265,6 @@ export class Assignment3 extends Scene {
         if (Math.floor(t) % this.day_length == 0
             && this.day <= Math.floor(t/this.day_length)) {
             this.day += 1;
-            console.log(this.day);
             return true;
         } else {
             return false;
