@@ -23,11 +23,8 @@ export class Assignment3 extends Scene {
             torus2: new defs.Torus(3, 15),
             sphere: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
-            surface: new defs.Regular_2D_Polygon(5, 4),
-            creature1: new Minion(),
-            creature2: new Minion(),
-            creature3: new Minion(),
-            creature4: new Minion(),
+            surface: new defs.Regular_2D_Polygon(10, 4),
+            creature: new Minion(),
             sun: new defs.Subdivision_Sphere(4),
             food1: new Food(),
         };
@@ -38,9 +35,9 @@ export class Assignment3 extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             sunMat: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#FDB813")}),
-                
+
             foodMat: new Material(new defs.Phong_Shader(),
-                   {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
+                {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
             grass: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#29a651")}),
             species1: new Material(new defs.Phong_Shader(),
@@ -65,13 +62,47 @@ export class Assignment3 extends Scene {
         this.minion_position = vec3(0, 0, 0);
         this.last_update_time = null;
 
-        this.food_positions = this.generate_food_positions(10); // Generate positions for 10 food items
+        this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
 
 
+        this.minion_positions = this.generate_minion_spawn_positions();
+        this.minions = [];
+        const colors = ["species1", "species2", "species3", "species4"];
+        const edges = ["top", "bottom", "left", "right"];
+
+        for (let i = 0; i < edges.length; i++) {
+            for (let j = 0; j < this.minion_positions[edges[i]].length; j++) {
+                let minion = new Minion();
+                minion.position = this.minion_positions[edges[i]][j];
+                minion.color = this.materials[colors[i]];
+                this.minions.push(minion);
+            }
+        }
     }
     get_background_color() {
         return this.background_color;
     }
+
+    generate_minion_spawn_positions(x = 4) {
+        const positions = {
+            top: [],
+            bottom: [],
+            left: [],
+            right: []
+        };
+        const map_edge = this.map_size / 2;
+
+        for (let i = 0; i < x; i++) {
+            let offset = (i / (x - 1)) * this.map_size - map_edge;
+            positions.top.push(vec3(offset, 0, map_edge));
+            positions.bottom.push(vec3(offset, 0, -map_edge));
+            positions.left.push(vec3(-map_edge, 0, offset));
+            positions.right.push(vec3(map_edge, 0, offset));
+        }
+
+        return positions;
+    }
+
 
 
     generate_food_positions(count) {
@@ -79,6 +110,7 @@ export class Assignment3 extends Scene {
         for (let i = 0; i < count; i++) {
             // Random value between -map_size/2 and map_size/2
             const x = Math.random() * this.map_size - this.map_size / 2;
+            //  console.log(x)
             const y = 0;
             const z = Math.random() * this.map_size - this.map_size / 2;
             positions.push(vec3(x, y, z));
@@ -150,127 +182,90 @@ export class Assignment3 extends Scene {
     }
 
     draw_minions(context, program_state, t) {
-        //this.minion_position = this.minion_position.plus(vec3(0, 0, 0));
-        let minion_transform = Mat4.translation(this.minion_position[0], this.minion_position[1], this.minion_position[2]);
 
-        this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.species1);
+        for (let minion of this.minions) {
+            let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
+            this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
 
-        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement_speed);
+            minion.position = minion.position.plus(minion.movement_speed);
 
-        let adjusted_time = t*4;
-        if (Math.floor(adjusted_time) % 2 === 0) {
-            this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
-        }
-        // make sure creature doesn't leave the grass
-        let x_pos = this.minion_position[0];
-        let z_pos = this.minion_position[2];
-        if (x_pos <= -this.map_size/1.5 || x_pos >= this.map_size/1.5
-            || z_pos <= -this.map_size/1.5 || z_pos >= this.map_size/1.5) {
-            this.shapes.creature1.movement_speed = vec3(0,0,0).minus(this.minion_position).normalized().times(0.05);
-        }
+            let adjusted_time = t*4;
+            if (Math.floor(adjusted_time) % 2 === 0) {
+                minion.movement_speed = minion.movement();
+            }
+            //make sure creature doesn't leave the grass
+            let x_pos = minion.position[0];
+            let z_pos = minion.position[2];
+            if (x_pos <= -this.map_size/1.5 || x_pos >= this.map_size/1.5
+                || z_pos <= -this.map_size/1.5 || z_pos >= this.map_size/1.5) {
+                minion.movement_speed = vec3(0,0,0).minus(minion.position).normalized().times(0.05);
+            }
 
-        //this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
+            let food_count_x = 0
+            let food_count_z = 0
 
-        //Updates Creature position every tick
-        this.shapes.creature1.position = this.minion_position;
-
-        // this.shapes.creature1.setPosition(this.minion_position);
-
-        //food is counted to the left right, top or bottom with respect to a creature, adjusting probabilty
-        let food_count_x = 0
-        let food_count_z = 0
-
-        let food_count_closest_x = 0
-        let food_count_closest_z = 0
+            let food_count_closest_x = 0
+            let food_count_closest_z = 0
 
 
-        let closestFood = vec3(0,0,0)
-        let shortDistance = 15
-        for (let pos of this.food_positions) {
-            let food_x = pos[0];
-            let food_y = pos[1];
-            let food_z = pos[2];
-            let food_distance = Math.sqrt((this.shapes.creature1.position[0] - food_x)**2 + (this.shapes.creature1.position[2] - food_z)**2)
-            if(food_distance < shortDistance){
-                shortDistance = food_distance;
-                closestFood = pos
-                if(this.shapes.creature1.position[0] > closestFood[0])
-                {
-                    food_count_closest_x = (this.map_size) - (this.shapes.creature1.position[0] - closestFood[0]);
+            let closestFood = vec3(0,0,0)
+            let shortDistance = 15
+            for (let pos of this.food_positions) {
+                let food_x = pos[0];
+                let food_y = pos[1];
+                let food_z = pos[2];
+                let food_distance = Math.sqrt((minion.position[0] - food_x)**2 + (minion.position[2] - food_z)**2)
+                if(food_distance < shortDistance){
+                    shortDistance = food_distance;
+                    closestFood = pos
+                    if(minion.position[0] > closestFood[0]) {
+                        food_count_closest_x = (this.map_size) - (minion.position[0] - closestFood[0]);
 
+                    }
+                    else {
+                        food_count_closest_x = -1* ((this.map_size) - (closestFood[0] - minion.position[0]));
+
+                    }
+                    if(minion.position[2] > closestFood[2]) {
+                        food_count_closest_z = (this.map_size) - (minion.position[2] - closestFood[2]);
+                    }
+                    else {
+                        food_count_closest_z = -1* ((this.map_size) - (closestFood[2] - minion.position[2]));
+                    }
                 }
-                else
-                {
-                    food_count_closest_x = -1* ((this.map_size) - (closestFood[0] - this.shapes.creature1.position[0]));
+            }
 
+            if(food_count_closest_x > food_count_closest_z) {
+                if(food_count_closest_x > 0) {
+                    minion.adjustProb(-0.4, 0, 'x');
                 }
-                if(this.shapes.creature1.position[2] > closestFood[2])
-                {
-                    food_count_closest_z = (this.map_size) - (this.shapes.creature1.position[2] - closestFood[2]);
+                else {
+                    minion.adjustProb(0.4, 0, 'x');
                 }
-                else
-                {
-                    food_count_closest_z = -1* ((this.map_size) - (closestFood[2] - this.shapes.creature1.position[2]));
+            }
+            else {
+                if(food_count_closest_z > 0) {
+                    minion.adjustProb(0, -0.4, 'z');
                 }
-
-            }
-
-
-        }
-
-        /*if(food_count_closest_x > 0)
-        {
-            this.shapes.creature1.adjustProb(-0.4, 0);
-        }
-        else
-        {
-            this.shapes.creature1.adjustProb(0.4, 0);
-        }
-        if(food_count_closest_z > 0)
-        {
-            this.shapes.creature1.adjustProb(this.shapes.creature1.xProb_adjustment, -0.4);
-        }
-        else
-        {
-            this.shapes.creature1.adjustProb(this.shapes.creature1.xProb_adjustment, 0.4);
-        }*/
-        //if z is closer than x, move in the x direction
-        if(food_count_closest_x > food_count_closest_z)
-        {
-            if(food_count_closest_x > 0)
-            {
-                this.shapes.creature1.adjustProb(-0.4, 0, 'x');
-            }
-            else
-            {
-                this.shapes.creature1.adjustProb(0.4, 0, 'x');
+                else {
+                    minion.adjustProb(0, 0.4, 'z');
+                }
             }
         }
-        else
-        {
-            if(food_count_closest_z > 0)
-            {
-                this.shapes.creature1.adjustProb(0, -0.4, 'z');
-            }
-            else
-            {
-                this.shapes.creature1.adjustProb(0, 0.4, 'z');
-            }
-        }
-
-
-        //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
 
     check_eaten_food() {
         // for each minion, check if its near enough to each piece of food to eat it
         // if food is eaten, remove it from map and add energy to minion
         var remaining_food = this.food_positions;
-        for (var i = 0; i < this.food_positions.length; i++) {
-            let minion_to_food_dist = this.minion_position.minus(this.food_positions[i]).norm();
-            if (minion_to_food_dist < (this.shapes.creature1.radius + this.shapes.food1.radius)) {
-                this.shapes.creature1.energy += 1;
-                remaining_food = remaining_food.splice(i,1);
+        for (let minion of this.minions) {
+            for (var i = 0; i < this.food_positions.length; i++) {
+                let minion_to_food_dist = minion.position.minus(this.food_positions[i]).norm();
+                if (minion_to_food_dist < (minion.radius + this.shapes.food1.radius)) {
+                    minion.energy += 1;
+                    remaining_food = remaining_food.splice(i,1);
+                    console.log(minion.energy);
+                }
             }
         }
     }
