@@ -51,7 +51,7 @@ export class Assignment3 extends Scene {
 
         };
         this.background_color = color(0.5, 0.8, 0.93, 1);
-        this.map_size = 15;
+        this.map_size = 30;
         this.sun_speed = 0.5;
         this.sun_rad = 12;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 22), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -109,10 +109,10 @@ export class Assignment3 extends Scene {
         const positions = [];
         for (let i = 0; i < count; i++) {
             // Random value between -map_size/2 and map_size/2
-            const x = Math.random() * this.map_size - this.map_size / 2;
+            const x = Math.random() * (4/3) * this.map_size - (2/3) * this.map_size;
             //  console.log(x)
             const y = 0;
-            const z = Math.random() * this.map_size - this.map_size / 2;
+            const z = Math.random() * (4/3) * this.map_size - (2/3) * this.map_size;
             positions.push(vec3(x, y, z));
         }
         return positions;
