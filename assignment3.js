@@ -272,6 +272,7 @@ export class Assignment3 extends Scene {
 
     setup_new_day(context,program_state,t) {
         this.draw_sun(context,program_state,t, true);
+        this.food_positions = this.food_positions.concat(this.generate_food_positions(100)); // some new food grows each day
     }
 
     display(context, program_state) {
