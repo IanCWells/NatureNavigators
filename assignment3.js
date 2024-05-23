@@ -156,10 +156,12 @@ export class Assignment3 extends Scene {
 
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.species1);
 
-        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement_speed);
+        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement());
 
         let adjusted_time = t*4;
         if (Math.floor(adjusted_time) % 2 === 0) {
+            console.log(adjusted_time);
+
             this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
         }
         //this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
@@ -170,61 +172,88 @@ export class Assignment3 extends Scene {
         // this.shapes.creature1.setPosition(this.minion_position);
 
         //food is counted to the left right, top or bottom with respect to a creature, adjusting probabilty
-        let food_count_right = 0
-        let food_count_left = 0
-        let food_count_top = 0
-        let food_count_bottom = 0
+        let food_count_x = 0
+        let food_count_z = 0
 
+        let food_count_closest_x = 0
+        let food_count_closest_z = 0
+
+
+        let closestFood = vec3(0,0,0)
+        let shortDistance = 15
         for (let pos of this.food_positions) {
             let food_x = pos[0];
             let food_y = pos[1];
             let food_z = pos[2];
-            //food is to the left of a creature
-            if(this.shapes.creature1.position[0] > food_x){
-                //Should be inverse multiplier
-                //If creature is max distance away 15, then distance multiplier is 15 - 15 = 0, so it doesnt add much
-                //to the probability
-                //If a creature is close, say 0 units, then distance multiplier is 15 - 0 = 15, so it counts much more towards probability
-                let distance_multiplier = (this.map_size) - (this.shapes.creature1.position[0] - food_x);
+            let food_distance = Math.sqrt((this.shapes.creature1.position[0] - food_x)**2 + (this.shapes.creature1.position[2] - food_z)**2)
+            if(food_distance < shortDistance){
+                shortDistance = food_distance;
+                closestFood = pos
+                if(this.shapes.creature1.position[0] > closestFood[0])
+                {
+                    food_count_closest_x = (this.map_size) - (this.shapes.creature1.position[0] - closestFood[0]);
 
-                distance_multiplier *= 50;
-                if(distance_multiplier < 0){
-                    distance_multiplier = 0
                 }
-                food_count_right += (distance_multiplier);
+                else
+                {
+                    food_count_closest_x = -1* ((this.map_size) - (closestFood[0] - this.shapes.creature1.position[0]));
+
+                }
+                if(this.shapes.creature1.position[2] > closestFood[2])
+                {
+                    food_count_closest_z = (this.map_size) - (this.shapes.creature1.position[2] - closestFood[2]);
+                }
+                else
+                {
+                    food_count_closest_z = -1* ((this.map_size) - (closestFood[2] - this.shapes.creature1.position[2]));
+                }
 
             }
-            //food is to the right of a creature
-            if(this.shapes.creature1.position[0] < food_x){
-                let distance_multiplier = (this.map_size) - (food_x - this.shapes.creature1.position[0]);
-                distance_multiplier *= 50;
-                if(distance_multiplier < 0){
-                    distance_multiplier = 0
-                }
-                food_count_left += (distance_multiplier);
-                //console.log("left" + food_count_left)
-            }
-            if(this.shapes.creature1.position[2] > food_z){
 
-                let distance_multiplier = (this.map_size) - (this.shapes.creature1.position[2] - food_z);
-                distance_multiplier *= 50;
-                if(distance_multiplier < 0){
-                    distance_multiplier = 0
-                }
-                food_count_top += (distance_multiplier);
 
-            }
-            if(this.shapes.creature1.position[2] < food_z){
-                let distance_multiplier = (this.map_size) - (food_z - this.shapes.creature1.position[2]);
-                distance_multiplier *= 50;
-                if(distance_multiplier < 0){
-                    distance_multiplier = 0
-                }
-                food_count_bottom += (distance_multiplier);
-            }
-
-            this.shapes.creature1.adjustProb(food_count_left - food_count_right, food_count_bottom - food_count_top);
         }
+
+        /*if(food_count_closest_x > 0)
+        {
+            this.shapes.creature1.adjustProb(-0.4, 0);
+        }
+        else
+        {
+            this.shapes.creature1.adjustProb(0.4, 0);
+        }
+        if(food_count_closest_z > 0)
+        {
+            this.shapes.creature1.adjustProb(this.shapes.creature1.xProb_adjustment, -0.4);
+        }
+        else
+        {
+            this.shapes.creature1.adjustProb(this.shapes.creature1.xProb_adjustment, 0.4);
+        }*/
+        //if z is closer than x, move in the x direction
+        if(food_count_closest_x > food_count_closest_z)
+        {
+            if(food_count_closest_x > 0)
+            {
+                this.shapes.creature1.adjustProb(-0.4, 0, 'x');
+            }
+            else
+            {
+                this.shapes.creature1.adjustProb(0.4, 0, 'x');
+            }
+        }
+        else
+        {
+            if(food_count_closest_z > 0)
+            {
+                this.shapes.creature1.adjustProb(0, -0.4, 'z');
+            }
+            else
+            {
+                this.shapes.creature1.adjustProb(0, 0.4, 'z');
+            }
+        }
+
+
         //this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.test.override({color: red}));
     }
 
