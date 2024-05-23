@@ -53,7 +53,6 @@ export class Assignment3 extends Scene {
         this.background_color = color(0.5, 0.8, 0.93, 1);
         this.day_length = 15; // how long a day is in seconds
         this.map_size = 30;
-        this.sun_speed = 0.5;
         this.sun_rad = this.map_size*0.75 + 2;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
