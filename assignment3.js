@@ -51,10 +51,11 @@ export class Assignment3 extends Scene {
 
         };
         this.background_color = color(0.5, 0.8, 0.93, 1);
+        this.day_length = 15; // how long a day is in seconds
         this.map_size = 30;
         this.sun_speed = 0.5;
-        this.sun_rad = 12;
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 22), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.sun_rad = this.map_size*0.75 + 2;
+        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
 
 
@@ -110,7 +111,6 @@ export class Assignment3 extends Scene {
         for (let i = 0; i < count; i++) {
             // Random value between -map_size/2 and map_size/2
             const x = Math.random() * (4/3) * this.map_size - (2/3) * this.map_size;
-            //  console.log(x)
             const y = 0;
             const z = Math.random() * (4/3) * this.map_size - (2/3) * this.map_size;
             positions.push(vec3(x, y, z));
@@ -142,16 +142,16 @@ export class Assignment3 extends Scene {
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.grass);
     }
 
-    draw_sun(context, program_state, t) {
+    draw_sun(context, program_state,t, is_new_day=false) {
         let n = 0;
-        if(this.day == 0){
+        if(is_new_day){
             n =  -Math.PI/2 * Math.cos(t*this.sun_speed);
         }
         else{
             n = Math.PI/2;
         }
         if(n >= Math.PI/2 - 0.01){
-            this.day += 1;
+            //this.day += 1;
             n = Math.PI/2;//n *-1;
         }
 
@@ -177,8 +177,9 @@ export class Assignment3 extends Scene {
     }
 
     set_background_color(t) {
-        let sky_color = Math.abs(Math.cos(t*this.sun_speed));
-        this.background_color = color(sky_color,0.5,sky_color,1);
+        t = t%this.day_length;
+        let color_intensity = Math.sin(t*Math.PI/this.day_length);
+        this.background_color = color(0.5*color_intensity,0.8*color_intensity,0.93*color_intensity,1);
     }
 
     draw_minions(context, program_state, t) {
@@ -264,10 +265,25 @@ export class Assignment3 extends Scene {
                 if (minion_to_food_dist < (minion.radius + this.shapes.food1.radius)) {
                     minion.energy += 1;
                     remaining_food = remaining_food.splice(i,1);
-                    console.log(minion.energy);
                 }
             }
         }
+    }
+
+    check_new_day(t) {
+        // there is a new day once every this.day_length seconds
+        if (Math.floor(t) % this.day_length == 0
+            && this.day <= Math.floor(t/this.day_length)) {
+            this.day += 1;
+            console.log(this.day);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    setup_new_day(context,program_state,t) {
+        this.draw_sun(context,program_state,t, true);
     }
 
     display(context, program_state) {
@@ -284,7 +300,10 @@ export class Assignment3 extends Scene {
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
 
-        this.draw_sun(context,program_state, t);
+        if (this.check_new_day(t)) {
+            this.setup_new_day(context,program_state,t);
+        }
+        this.draw_sun(context,program_state,t);
         this.draw_grass(context,program_state);
         this.draw_food(context,program_state);
         this.set_background_color(t);
