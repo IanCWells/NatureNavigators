@@ -199,7 +199,7 @@ export class Assignment3 extends Scene {
 
 
             let closestFood = vec3(0,0,0)
-            let shortDistance = 15
+            let shortDistance = this.map_size;
             for (let pos of this.food_positions) {
                 let food_x = pos[0];
                 let food_y = pos[1];
