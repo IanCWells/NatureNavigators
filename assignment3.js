@@ -23,7 +23,7 @@ export class Assignment3 extends Scene {
             torus2: new defs.Torus(3, 15),
             sphere: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
-            surface: new defs.Regular_2D_Polygon(10, 4),
+            surface: new defs.Regular_2D_Polygon(5, 4),
             creature1: new Minion(),
             creature2: new Minion(),
             creature3: new Minion(),
@@ -79,7 +79,6 @@ export class Assignment3 extends Scene {
         for (let i = 0; i < count; i++) {
             // Random value between -map_size/2 and map_size/2
             const x = Math.random() * this.map_size - this.map_size / 2;
-          //  console.log(x)
             const y = 0;
             const z = Math.random() * this.map_size - this.map_size / 2;
             positions.push(vec3(x, y, z));
@@ -156,14 +155,20 @@ export class Assignment3 extends Scene {
 
         this.shapes.creature1.draw(context, program_state, minion_transform, this.materials.species1);
 
-        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement());
+        this.minion_position = this.minion_position.plus(this.shapes.creature1.movement_speed);
 
         let adjusted_time = t*4;
         if (Math.floor(adjusted_time) % 2 === 0) {
-            console.log(adjusted_time);
-
             this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
         }
+        // make sure creature doesn't leave the grass
+        let x_pos = this.minion_position[0];
+        let z_pos = this.minion_position[2];
+        if (x_pos <= -this.map_size/1.5 || x_pos >= this.map_size/1.5
+            || z_pos <= -this.map_size/1.5 || z_pos >= this.map_size/1.5) {
+            this.shapes.creature1.movement_speed = vec3(0,0,0).minus(this.minion_position).normalized().times(0.05);
+        }
+
         //this.shapes.creature1.movement_speed = this.shapes.creature1.movement();
 
         //Updates Creature position every tick
@@ -266,7 +271,6 @@ export class Assignment3 extends Scene {
             if (minion_to_food_dist < (this.shapes.creature1.radius + this.shapes.food1.radius)) {
                 this.shapes.creature1.energy += 1;
                 remaining_food = remaining_food.splice(i,1);
-                console.log(this.shapes.creature1.energy);
             }
         }
     }
