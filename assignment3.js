@@ -12,7 +12,7 @@ const {
     Food
 } = food_defs;
 
-export class Assignment3 extends Scene {
+export class NatureNavigators extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
