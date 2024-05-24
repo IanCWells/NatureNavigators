@@ -10,7 +10,7 @@ export {minion_defs};
 
 const Minion = minion_defs.Minion =
     class Minion extends Shape {
-        constructor() {
+        constructor(species) {
             super("positions", "normals", "texture_coords");
 
             // Create the ellipsoid body (stretched sphere)
@@ -33,7 +33,7 @@ const Minion = minion_defs.Minion =
             this.indices = [];
 
             this.movement_direction = vec3(0, 0, 0);
-            this.speed = 1.5;
+            this.speed = 0.5;
             this.radius = 0.5;
             this.energy = 10;
 
@@ -41,6 +41,7 @@ const Minion = minion_defs.Minion =
             this.zProb_adjustment = 0;
             this.position = vec3(0, 0, 0);
             this.color = "species1";
+            this.species = species;
 
             this.plane = 'x';
 

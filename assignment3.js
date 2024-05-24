@@ -57,7 +57,10 @@ export class Assignment3 extends Scene {
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
 
-        this.speed = 1;
+        this.species1_speed = 1;
+        this.species2_speed = 1;
+        this.species3_speed = 1;
+        this.species4_speed = 1;
         this.last_update_time = 0;
         this.new_food_per_day = 50;
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
@@ -70,7 +73,7 @@ export class Assignment3 extends Scene {
 
         for (let i = 0; i < edges.length; i++) {
             for (let j = 0; j < this.minion_positions[edges[i]].length; j++) {
-                let minion = new Minion();
+                let minion = new Minion(colors[i]);
                 minion.position = this.minion_positions[edges[i]][j];
                 minion.color = this.materials[colors[i]];
                 this.minions.push(minion);
@@ -117,18 +120,24 @@ export class Assignment3 extends Scene {
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => null);
-        this.new_line();
-        this.key_triggered_button("Attach to planet 1", ["Control", "1"], () => this.attached = () => this.planet_1);
-        this.key_triggered_button("Attach to planet 2", ["Control", "2"], () => this.attached = () => this.planet_2);
-        this.new_line();
-        this.key_triggered_button("Attach to planet 3", ["Control", "3"], () => this.attached = () => this.planet_3);
-        this.key_triggered_button("Attach to planet 4", ["Control", "4"], () => this.attached = () => this.planet_4);
-        this.new_line();
-        this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
+        // this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => null);
+        // this.new_line();
+        // this.key_triggered_button("Attach to planet 1", ["Control", "1"], () => this.attached = () => this.planet_1);
+        // this.key_triggered_button("Attach to planet 2", ["Control", "2"], () => this.attached = () => this.planet_2);
+        // this.new_line();
+        // this.key_triggered_button("Attach to planet 3", ["Control", "3"], () => this.attached = () => this.planet_3);
+        // this.key_triggered_button("Attach to planet 4", ["Control", "4"], () => this.attached = () => this.planet_4);
+        // this.new_line();
+        // this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
 
-        this.create_input_box("Speed", "speed", this.speed);
-
+        this.create_input_box("Species 1 (Red) speed", "species1_speed", this.species1_speed);
+        this.new_line();
+        this.create_input_box("Species 2 (Purple) speed", "species2_speed", this.species2_speed);
+        this.new_line();
+        this.create_input_box("Species 3 (Yellow) speed", "species3_speed", this.species3_speed);
+        this.new_line();
+        this.create_input_box("Species 4 (Blue) speed", "species4_speed", this.species4_speed);
+        this.new_line();
     }
 
     draw_grass(context, program_state) {
@@ -292,6 +301,25 @@ export class Assignment3 extends Scene {
         this.last_update_time = t;
     }
 
+    update_minion_speed() {
+        for (let minion of this.minions) {
+            switch(minion.species) {
+                case "species1":
+                    minion.speed = this.species1_speed;
+                    break;
+                case "species2":
+                    minion.speed = this.species2_speed;
+                    break;
+                case "species3":
+                    minion.speed = this.species3_speed;
+                    break;
+                case "species4":
+                    minion.speed = this.species4_speed;
+                    break;
+            }
+        }
+    }
+
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
@@ -305,7 +333,6 @@ export class Assignment3 extends Scene {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-        //console.log(t);
         if (this.check_new_day(t)) {
             this.setup_new_day(context,program_state,t);
         }
@@ -315,6 +342,7 @@ export class Assignment3 extends Scene {
         this.set_background_color(t);
         this.draw_minions(context,program_state, t);
         this.check_eaten_food();
+        this.update_minion_speed();
         if (Math.floor(t) > this.last_update_time) { // update minion health once a second
             this.update_minion_health(Math.floor(t));
         }
