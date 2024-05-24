@@ -32,7 +32,8 @@ const Minion = minion_defs.Minion =
             this.arrays.texture_coord = [];
             this.indices = [];
 
-            this.movement_speed = vec3(0, 0, 0);
+            this.movement_direction = vec3(0, 0, 0);
+            this.speed = 1.5;
             this.radius = 0.5;
             this.energy = 10;
 
@@ -110,5 +111,4 @@ const Minion = minion_defs.Minion =
             this.zProb_adjustment = z_prob;//*0.003;// * prob_adjustment_factor;
             this.plane = plane;
         }
-
     }

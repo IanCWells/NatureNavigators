@@ -41,13 +41,13 @@ export class Assignment3 extends Scene {
             grass: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#29a651")}),
             species1: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#ff5555")}),
+                {ambient: .4, diffusivity: .6, color: hex_color("#ff5555")}), //red
             species2: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#a020f0")}),
+                {ambient: .4, diffusivity: .6, color: hex_color("#a020f0")}), //purple
             species3: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#FFFF00")}),
+                {ambient: .4, diffusivity: .6, color: hex_color("#FFFF00")}), //yellow
             species4: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#0066FF")}),
+                {ambient: .4, diffusivity: .6, color: hex_color("#0066FF")}), //blue
 
         };
         this.background_color = color(0.5, 0.8, 0.93, 1);
@@ -58,9 +58,8 @@ export class Assignment3 extends Scene {
         this.day = 0;
 
         this.speed = 1;
-        this.minion_position = vec3(0, 0, 0);
-        this.last_update_time = null;
-
+        this.last_update_time = 0;
+        this.new_food_per_day = 50;
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
 
 
@@ -177,18 +176,18 @@ export class Assignment3 extends Scene {
             let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
             this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
 
-            minion.position = minion.position.plus(minion.movement_speed);
+            minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
 
             let adjusted_time = t*4;
             if (Math.floor(adjusted_time) % 2 === 0) {
-                minion.movement_speed = minion.movement();
+                minion.movement_direction = minion.movement();
             }
             //make sure creature doesn't leave the grass
             let x_pos = minion.position[0];
             let z_pos = minion.position[2];
             if (x_pos <= -this.map_size/1.5 || x_pos >= this.map_size/1.5
                 || z_pos <= -this.map_size/1.5 || z_pos >= this.map_size/1.5) {
-                minion.movement_speed = vec3(0,0,0).minus(minion.position).normalized().times(0.05);
+                minion.movement_direction = vec3(0,0,0).minus(minion.position).normalized().times(0.05);
             }
 
             let food_count_x = 0
@@ -272,7 +271,25 @@ export class Assignment3 extends Scene {
 
     setup_new_day(context,program_state,t) {
         this.draw_sun(context,program_state,t, true);
-        this.food_positions = this.food_positions.concat(this.generate_food_positions(100)); // some new food grows each day
+        this.food_positions = this.food_positions.concat(this.generate_food_positions(this.new_food_per_day)); // some new food grows each day
+        for (let minion of this.minions) {
+            console.log(minion.energy);
+        }
+    }
+
+    update_minion_health(t) {
+        let time_passed = t - this.last_update_time;
+        // reduce minion energies based on their speed on how much time has passed
+        var remaining_minions = this.minions;
+        for (var i = 0; i < this.minions.length; i++) {
+            let minion = this.minions[i];
+            minion.energy -= 0.5 * minion.speed**2 * time_passed ; // KE = 0.5mv^2
+            // check if any minions have died from losing all energy
+            if (minion.energy <= 0) {
+                remaining_minions = remaining_minions.splice(i,1);
+            }
+        }
+        this.last_update_time = t;
     }
 
     display(context, program_state) {
@@ -288,7 +305,7 @@ export class Assignment3 extends Scene {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-
+        //console.log(t);
         if (this.check_new_day(t)) {
             this.setup_new_day(context,program_state,t);
         }
@@ -298,6 +315,9 @@ export class Assignment3 extends Scene {
         this.set_background_color(t);
         this.draw_minions(context,program_state, t);
         this.check_eaten_food();
+        if (Math.floor(t) > this.last_update_time) { // update minion health once a second
+            this.update_minion_health(Math.floor(t));
+        }
     }
 }
 
