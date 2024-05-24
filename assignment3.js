@@ -51,7 +51,7 @@ export class NatureNavigators extends Scene {
 
         };
         this.background_color = color(0.5, 0.8, 0.93, 1);
-        this.day_length = 15; // how long a day is in seconds
+        this.day_length = 30; // how long a day is in seconds
         this.map_size = 30;
         this.sun_rad = this.map_size*0.75 + 2;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -62,7 +62,7 @@ export class NatureNavigators extends Scene {
         this.species3_speed = 1;
         this.species4_speed = 1;
         this.last_update_time = 0;
-        this.new_food_per_day = 50;
+        this.new_food_per_day = 100;
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
 
 
@@ -232,21 +232,22 @@ export class NatureNavigators extends Scene {
                     }
                 }
             }
-
+            let movement_prob = 0.2;
             if(food_count_closest_x > food_count_closest_z) {
+
                 if(food_count_closest_x > 0) {
-                    minion.adjustProb(-0.4, 0, 'x');
+                    minion.adjustProb(-movement_prob, 0, 'x');
                 }
                 else {
-                    minion.adjustProb(0.4, 0, 'x');
+                    minion.adjustProb(movement_prob, 0, 'x');
                 }
             }
             else {
                 if(food_count_closest_z > 0) {
-                    minion.adjustProb(0, -0.4, 'z');
+                    minion.adjustProb(0, -movement_prob, 'z');
                 }
                 else {
-                    minion.adjustProb(0, 0.4, 'z');
+                    minion.adjustProb(0, movement_prob, 'z');
                 }
             }
         }
