@@ -56,6 +56,9 @@ export class NatureNavigators extends Scene {
         this.sun_rad = this.map_size*0.75 + 2;
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 0, 0), vec3(0, 1, 0));
         this.day = 0;
+        this.paused = true;
+        this.t = 0; // how long the simulation has been running for (unpaused time)
+        this.last_t = 0; // used to keep track when time is paused
 
         this.species1_speed = 1;
         this.species2_speed = 1;
@@ -119,17 +122,6 @@ export class NatureNavigators extends Scene {
     }
 
     make_control_panel() {
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        // this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => null);
-        // this.new_line();
-        // this.key_triggered_button("Attach to planet 1", ["Control", "1"], () => this.attached = () => this.planet_1);
-        // this.key_triggered_button("Attach to planet 2", ["Control", "2"], () => this.attached = () => this.planet_2);
-        // this.new_line();
-        // this.key_triggered_button("Attach to planet 3", ["Control", "3"], () => this.attached = () => this.planet_3);
-        // this.key_triggered_button("Attach to planet 4", ["Control", "4"], () => this.attached = () => this.planet_4);
-        // this.new_line();
-        // this.key_triggered_button("Attach to moon", ["Control", "m"], () => this.attached = () => this.moon);
-
         this.create_input_box("Species 1 (Red) speed", "species1_speed", this.species1_speed);
         this.new_line();
         this.create_input_box("Species 2 (Purple) speed", "species2_speed", this.species2_speed);
@@ -138,6 +130,9 @@ export class NatureNavigators extends Scene {
         this.new_line();
         this.create_input_box("Species 4 (Blue) speed", "species4_speed", this.species4_speed);
         this.new_line();
+        this.key_triggered_button("Start/Pause Simulation", ["p"], () => {
+            this.paused = !this.paused;
+        });
     }
 
     draw_grass(context, program_state) {
@@ -148,22 +143,21 @@ export class NatureNavigators extends Scene {
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.grass);
     }
 
-    draw_sun(context, program_state,t, is_new_day=false) {
-        let n = 0;
-        n =  -Math.PI/2 * Math.cos((t%this.day_length)*Math.PI/this.day_length);
+    draw_sun(context, program_state) {
+        let n =  -Math.PI/2 * Math.cos((this.t % this.day_length)*Math.PI/this.day_length);
 
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
 
         let light_position = vec4(0, 0, 0, 1);
         let translated_position = translationMatrix.times(light_position);
-        let rotated_light_position = rotationMatrix.times(translated_position);
+        let sun_light_position = rotationMatrix.times(translated_position);
 
-        program_state.lights = [new Light(rotated_light_position, color(1, 1, 1, 1), 10000)];
-        let sun_transform = Mat4.identity();
-        sun_transform = sun_transform.times(Mat4.rotation(n,0,0,1));
-        sun_transform = sun_transform.times(Mat4.translation(0,this.sun_rad,0));
-        this.shapes.sun.draw(context, program_state, sun_transform, this.materials.sunMat);
+        let sun_position = Mat4.identity()
+            .times(Mat4.rotation(n,0,0,1))
+            .times(Mat4.translation(0,this.sun_rad,0));
+        program_state.lights = [new Light(sun_light_position, color(1, 1, 1, 1), 10000)];
+        this.shapes.sun.draw(context, program_state, sun_position, this.materials.sunMat);
     }
 
     draw_food(context, program_state) {
@@ -173,21 +167,23 @@ export class NatureNavigators extends Scene {
         }
     }
 
-    set_background_color(t) {
-        t = t%this.day_length;
+    set_background_color() {
+        let t = this.t % this.day_length;
         let color_intensity = Math.sin(t*Math.PI/this.day_length);
         this.background_color = color(0.5*color_intensity,0.8*color_intensity,0.93*color_intensity,1);
     }
 
-    draw_minions(context, program_state, t) {
+    draw_minions(context, program_state) {
 
         for (let minion of this.minions) {
             let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
             this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
 
-            minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
+            if (!this.paused) {
+                minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
+            }
 
-            let adjusted_time = t*4;
+            let adjusted_time = this.t*4;
             if (Math.floor(adjusted_time) % 2 === 0) {
                 minion.movement_direction = minion.movement();
             }
@@ -268,10 +264,10 @@ export class NatureNavigators extends Scene {
         }
     }
 
-    check_new_day(t) {
+    check_new_day() {
         // there is a new day once every this.day_length seconds
-        if (Math.floor(t) % this.day_length == 0
-            && this.day <= Math.floor(t/this.day_length)) {
+        if (Math.floor(this.t) % this.day_length == 0
+            && this.day <= Math.floor(this.t/this.day_length)) {
             this.day += 1;
             return true;
         } else {
@@ -279,16 +275,13 @@ export class NatureNavigators extends Scene {
         }
     }
 
-    setup_new_day(context,program_state,t) {
-        this.draw_sun(context,program_state,t, true);
+    setup_new_day(context,program_state) {
+        //this.draw_sun(context,program_state);
         this.food_positions = this.food_positions.concat(this.generate_food_positions(this.new_food_per_day)); // some new food grows each day
-        for (let minion of this.minions) {
-            console.log(minion.energy);
-        }
     }
 
-    update_minion_health(t) {
-        let time_passed = t - this.last_update_time;
+    update_minion_health() {
+        let time_passed = this.t - this.last_update_time;
         // reduce minion energies based on their speed on how much time has passed
         var remaining_minions = this.minions;
         for (var i = 0; i < this.minions.length; i++) {
@@ -299,7 +292,7 @@ export class NatureNavigators extends Scene {
                 remaining_minions = remaining_minions.splice(i,1);
             }
         }
-        this.last_update_time = t;
+        this.last_update_time = this.t;
     }
 
     update_minion_speed() {
@@ -334,19 +327,23 @@ export class NatureNavigators extends Scene {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-        if (this.check_new_day(t)) {
-            this.setup_new_day(context,program_state,t);
+        if (!this.paused) {
+            this.t += t - this.last_t;
         }
-        this.draw_sun(context,program_state,t);
+
+        if (this.check_new_day()) {
+            this.setup_new_day(context,program_state);
+        }
+        this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
         this.draw_food(context,program_state);
-        this.set_background_color(t);
-        this.draw_minions(context,program_state, t);
+        this.set_background_color();
+        this.draw_minions(context,program_state);
         this.check_eaten_food();
         this.update_minion_speed();
-        if (Math.floor(t) > this.last_update_time) { // update minion health once a second
-            this.update_minion_health(Math.floor(t));
-        }
+        this.update_minion_health();
+
+        this.last_t = t;
     }
 }
 
