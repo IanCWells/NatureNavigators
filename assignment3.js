@@ -29,6 +29,14 @@ export class NatureNavigators extends Scene {
             food1: new Food(),
         };
 
+        // modify texture coords
+        this.shapes.surface.arrays.texture_coord.forEach(
+            (v,i,l) => v[0] = v[0] * 30
+        )
+        this.shapes.surface.arrays.texture_coord.forEach(
+            (u,i,l) => u[1] = u[1] * 30
+        )
+
         // *** Materials
         this.materials = {
             test: new Material(new defs.Phong_Shader(),
@@ -40,6 +48,11 @@ export class NatureNavigators extends Scene {
                 {ambient: 0.4, diffusivity: 0.6, specularity: 0, color: hex_color("#964B00")}),
             grass: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#29a651")}),
+            grass_texture: new Material(new defs.Textured_Phong(), {
+                color: hex_color("#000000"),
+                ambient: 1.0, diffusivity: 1.0, specularity: 0.5,
+                texture: new tiny.Texture("assets/grass.jpg", "LINEAR_MIPMAP_LINEAR")
+            }),
             species1: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ff5555")}), //red
             species2: new Material(new defs.Phong_Shader(),
@@ -140,7 +153,7 @@ export class NatureNavigators extends Scene {
             .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
             .times(Mat4.rotation(Math.PI/2,1,0,0))
             .times(Mat4.rotation(Math.PI/4,0,0,1));
-        this.shapes.surface.draw(context, program_state, surface_transform, this.materials.grass);
+        this.shapes.surface.draw(context, program_state, surface_transform, this.materials.grass_texture);
     }
 
     draw_sun(context, program_state) {
