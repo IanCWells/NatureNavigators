@@ -105,20 +105,29 @@ const Minion = minion_defs.Minion =
 
             //Potential Solution for movement fix
             //console.log(this.normalized_x + " " + this.normalized_z);
-            //let store_x = Math.abs(100*(this.normalized_x - this.normalized_z));
-            //let store_z = Math.abs(100*(this.normalized_z - this.normalized_x));
-            //movement_x = movement_x * store_x;
-            //movement_z = movement_z * store_z;
-            //console.log(movement_x + " " + movement_z);
-            //another issue with movement should be increasing randomness so as minions don't all converge when food stuffs are eaten
-            //this can be solved by respwansing minions at the end fo a day
+            let store = ((this.normalized_x - this.normalized_z));
+           //let store_z = Math.abs((this.normalized_z - this.normalized_x));
+            console.log("store: " + store);
+            //if store is close, then they should move diagnolly, if
+            let movement_factor = 2;
+            if(store < -0.035)
+            {
+                console.log("HERE1");
+                movement_z = 0;
+            }
+            else if(store > 0.035)
+            {
+                console.log("HERE2");
+                movement_x = 0;
+            }
 
 
 
-            //if(Math.abs(this.xProb_adjustment) > Math)
-
-            //let movement_vector = vec3(movement_x, 0, movement_z);
-
+            //if they are moving diagonally, then we need to account for the speed
+            // increase which occurs in diagonal direction
+            if(movement_z != 0 && movement_x != 0){
+                return vec3(movement_x/2, 0, movement_z/2);
+            }
             return vec3(movement_x, 0, movement_z);
         }
         adjustProb(x_prob, z_prob, food_count_closest_x, food_count_closest_z, map_size){

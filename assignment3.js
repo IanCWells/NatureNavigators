@@ -184,7 +184,7 @@ export class NatureNavigators extends Scene {
             }
 
             let adjusted_time = this.t*4;
-            if (Math.floor(this.t*4) % 2 === 0) {
+            if (Math.floor(this.t*8) % 2 === 0) {
                 minion.movement_direction = minion.movement();
             }
             //make sure creature doesn't leave the grass
@@ -228,7 +228,7 @@ export class NatureNavigators extends Scene {
                     }
                 }
             }
-            let movement_prob = 0.499;
+            let movement_prob = 0.4999;
 
 
             if(food_count_closest_x > 0 && food_count_closest_z > 0) {
