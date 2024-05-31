@@ -80,7 +80,7 @@ const Minion = minion_defs.Minion =
             //If z_prob > 0, there are more food items to the top than bottom of our creature
 
             //move to the right
-            let min_speed = 0.06;
+            let min_speed = 0.04;
             //this.xProb_adjustment
 
             //can either move right, left, up, down, ur, ul, dr, dl
@@ -123,11 +123,7 @@ const Minion = minion_defs.Minion =
 
 
 
-            //if they are moving diagonally, then we need to account for the speed
-            // increase which occurs in diagonal direction
-            if(movement_z != 0 && movement_x != 0){
-                return vec3(movement_x/2, 0, movement_z/2);
-            }
+
             return vec3(movement_x, 0, movement_z);
         }
         adjustProb(x_prob, z_prob, food_count_closest_x, food_count_closest_z, map_size){
