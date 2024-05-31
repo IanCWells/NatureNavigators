@@ -33,14 +33,15 @@ const Minion = minion_defs.Minion =
             this.indices = [];
 
             this.movement_direction = vec3(0, 0, 0);
-            this.speed = 0.5;
+            this.speed = 1;
             this.radius = 0.5;
-            this.energy = 10;
+            this.starting_energy = 10;
+            this.energy = this.starting_energy;
 
             this.xProb_adjustment = 0;
             this.zProb_adjustment = 0;
             this.position = vec3(0, 0, 0);
-            this.color = "species1";
+            this.color = "species1"; // the material the minion is drawn with
             this.species = species;
 
             this.plane = 'x';

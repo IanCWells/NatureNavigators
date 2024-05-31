@@ -130,7 +130,7 @@ export class NatureNavigators extends Scene {
         this.new_line();
         this.create_input_box("Species 4 (Blue) speed", "species4_speed", this.species4_speed);
         this.new_line();
-        this.key_triggered_button("Start/Pause Simulation", ["p"], () => {
+        this.key_triggered_button("Play/Pause Simulation", ["p"], () => {
             this.paused = !this.paused;
         });
     }
@@ -174,11 +174,11 @@ export class NatureNavigators extends Scene {
     }
 
     draw_minions(context, program_state) {
-
+        let minions_drawn = 0;
         for (let minion of this.minions) {
             let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
             this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
-
+            minions_drawn += 1;
             if (!this.paused) {
                 minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
             }
@@ -278,6 +278,8 @@ export class NatureNavigators extends Scene {
     setup_new_day(context,program_state) {
         //this.draw_sun(context,program_state);
         this.food_positions = this.food_positions.concat(this.generate_food_positions(this.new_food_per_day)); // some new food grows each day
+        this.minions_reproduce();
+        console.log("this many minions: " + this.minions.length);
     }
 
     update_minion_health() {
@@ -310,6 +312,20 @@ export class NatureNavigators extends Scene {
                 case "species4":
                     minion.speed = this.species4_speed;
                     break;
+            }
+        }
+    }
+
+    minions_reproduce() {
+        for (let minion of this.minions) {
+            if (minion.energy > minion.starting_energy) {
+                let new_minion = new Minion(minion.color);
+                new_minion.position = minion.position.plus(vec3(0,0,0).minus(minion.position).normalized().times(0.05));
+                new_minion.color = minion.color;
+                new_minion.speed = minion.speed;
+                new_minion.species = minion.species;
+                minion.energy -= minion.starting_energy;
+                this.minions.push(new_minion);
             }
         }
     }
