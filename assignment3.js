@@ -66,6 +66,7 @@ export class NatureNavigators extends Scene {
         this.species4_speed = 1;
         this.last_update_time = 0;
         this.new_food_per_day = 100;
+        this.last_food_grown_time = 0;
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
 
 
@@ -276,10 +277,7 @@ export class NatureNavigators extends Scene {
     }
 
     setup_new_day(context,program_state) {
-        //this.draw_sun(context,program_state);
-        this.food_positions = this.food_positions.concat(this.generate_food_positions(this.new_food_per_day)); // some new food grows each day
         this.minions_reproduce();
-        console.log("this many minions: " + this.minions.length);
     }
 
     update_minion_health() {
@@ -330,6 +328,13 @@ export class NatureNavigators extends Scene {
         }
     }
 
+    grow_food() {
+        if (this.t - this.last_food_grown_time >= this.day_length / this.new_food_per_day) {
+            this.food_positions = this.food_positions.concat(this.generate_food_positions(1));
+            this.last_food_grown_time = this.t;
+        }
+    }
+
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
@@ -356,6 +361,7 @@ export class NatureNavigators extends Scene {
         this.set_background_color();
         this.draw_minions(context,program_state);
         this.check_eaten_food();
+        this.grow_food();
         this.update_minion_speed();
         this.update_minion_health();
 
