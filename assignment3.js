@@ -175,17 +175,17 @@ export class NatureNavigators extends Scene {
     }
 
     draw_minions(context, program_state) {
-        let minions_drawn = 0;
+
         for (let minion of this.minions) {
             let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
             this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
-            minions_drawn += 1;
+
             if (!this.paused) {
                 minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
             }
 
             let adjusted_time = this.t*4;
-            if (Math.floor(adjusted_time) % 2 === 0) {
+            if (Math.floor(this.t*8) % 2 === 0) {
                 minion.movement_direction = minion.movement();
             }
             //make sure creature doesn't leave the grass
@@ -229,23 +229,22 @@ export class NatureNavigators extends Scene {
                     }
                 }
             }
-            let movement_prob = 0.2;
-            if(food_count_closest_x > food_count_closest_z) {
+            let movement_prob = 0.4999;
 
-                if(food_count_closest_x > 0) {
-                    minion.adjustProb(-movement_prob, 0, 'x');
-                }
-                else {
-                    minion.adjustProb(movement_prob, 0, 'x');
-                }
+
+            if(food_count_closest_x > 0 && food_count_closest_z > 0) {
+                minion.adjustProb(-movement_prob, -movement_prob, food_count_closest_x, food_count_closest_z, this.map_size);
             }
-            else {
-                if(food_count_closest_z > 0) {
-                    minion.adjustProb(0, -movement_prob, 'z');
-                }
-                else {
-                    minion.adjustProb(0, movement_prob, 'z');
-                }
+            else if (food_count_closest_x > 0 && food_count_closest_z <= 0) {
+                minion.adjustProb(-movement_prob, movement_prob, food_count_closest_x, food_count_closest_z, this.map_size);
+            }
+            else if(food_count_closest_x <= 0 && food_count_closest_z > 0)
+            {
+                minion.adjustProb(movement_prob, -movement_prob, food_count_closest_x, food_count_closest_z, this.map_size);
+            }
+            else
+            {
+                minion.adjustProb(movement_prob, movement_prob, food_count_closest_x, food_count_closest_z, this.map_size);
             }
         }
     }
@@ -368,5 +367,3 @@ export class NatureNavigators extends Scene {
         this.last_t = t;
     }
 }
-
-

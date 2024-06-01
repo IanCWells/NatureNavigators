@@ -79,31 +79,51 @@ const Minion = minion_defs.Minion =
             //If z_prob > 0, there are more food items to the top than bottom of our creature
 
             //move to the right
-            let min_speed = 0.06;
+            let min_speed = 0.04;
+            //this.xProb_adjustment
 
-            if(this.plane === 'x'){
-                if(movement_prob >= 0 && movement_prob < (0.5 + this.xProb_adjustment)){
-                    movement_x = min_speed;
-                }
-                //move to the left
-                if(movement_prob >= (0.5 + this.xProb_adjustment) && movement_prob < 1){
-                    movement_x = -min_speed;
-                }
+            //can either move right, left, up, down, ur, ul, dr, dl
+            //right if this.xProb_adjustment '-' and this.zProb_adjustment
+            //one solution would be multiplying movement trajectory
+
+
+            if(movement_prob >= 0 && movement_prob < (0.5 + this.xProb_adjustment)){
+                movement_x = min_speed;
             }
-            else
+            //move to the left
+            if(movement_prob >= (0.5 + this.xProb_adjustment) && movement_prob < 1){
+                movement_x = -min_speed;
+            }
+            if(movement_prob >= 0 && movement_prob < (0.5 + this.zProb_adjustment)){
+                movement_z = min_speed;
+            }
+            //move down
+            if(movement_prob >= (0.5 + this.zProb_adjustment) && movement_prob < 1.0){
+                movement_z = -min_speed;
+            }
+
+            //Potential Solution for movement fix
+            //console.log(this.normalized_x + " " + this.normalized_z);
+            let store = ((this.normalized_x - this.normalized_z));
+            //let store_z = Math.abs((this.normalized_z - this.normalized_x));
+            console.log("store: " + store);
+            //if store is close, then they should move diagnolly, if
+            let movement_factor = 2;
+            if(store < -0.035)
             {
-                if(movement_prob >= 0 && movement_prob < (0.5 + this.zProb_adjustment)){
-                    movement_z = min_speed;
-                }
-                //move down
-                if(movement_prob >= (0.5 + this.zProb_adjustment) && movement_prob < 1.0){
-                    movement_z = -min_speed;
-                }
+                console.log("HERE1");
+                movement_z = 0;
+            }
+            else if(store > 0.035)
+            {
+                console.log("HERE2");
+                movement_x = 0;
             }
 
-            let movement_vector = vec3(movement_x, 0, movement_z);
 
-            return movement_vector;
+
+
+            return vec3(movement_x, 0, movement_z);
         }
         adjustProb(x_prob, z_prob, plane){
             //If x_prob > 0, there are more food items to the right than left of our creature
