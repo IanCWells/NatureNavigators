@@ -231,7 +231,6 @@ export class NatureNavigators extends Scene {
             }
             let movement_prob = 0.4999;
 
-
             if(food_count_closest_x > 0 && food_count_closest_z > 0) {
                 minion.adjustProb(-movement_prob, -movement_prob, food_count_closest_x, food_count_closest_z, this.map_size);
             }
