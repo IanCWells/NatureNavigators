@@ -160,7 +160,6 @@ export class NatureNavigators extends Scene {
     
         this.shapes.surface.draw(context, program_state, surface_transform, this.materials.squareMat);
     
-        // Calculate minion counts for each species
         let species_counts = {
             species1: 0,
             species2: 0,
@@ -172,24 +171,24 @@ export class NatureNavigators extends Scene {
             species_counts[minion.species]++;
         }
     
-        // Define bar properties
         let bar_width = 1;
-        let bar_gap = 8;
-        let max_bar_height = this.map_size * 2.5; // Maximum bar height
+        let bar_gap = 8.75;
+        // let max_bar_height = this.map_size / 2; // Maximum bar height
     
-        // Draw bars
         let species = ["species1", "species2", "species3", "species4"];
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
-            let bar_height = (species_counts[species_name] / this.minions.length) * max_bar_height;
-    
+            // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
+            let y_scale = species_counts[species_name] / species.length;
+            
             let bar_transform = Mat4.identity()
                 .times(Mat4.translation(
                     -this.map_size / 2 + bar_width / 2 + i * (bar_width + bar_gap),
-                    this.map_size / 3,
+                    this.map_size / 256,
                     0))
-                .times(Mat4.scale(bar_width * 4, bar_height / 2, bar_width / 2))
-                .times(Mat4.translation(0, 0, -this.map_size * 1.378));
+                .times(Mat4.scale(bar_width * 4, this.map_size / 4 , bar_width / 2))
+                .times(Mat4.translation(0, y_scale, -this.map_size * 1.378))
+                .times(Mat4.scale(1, y_scale, 1));
 
             this.shapes.cube.draw(context, program_state, bar_transform, this.materials[species_name]);
         }
