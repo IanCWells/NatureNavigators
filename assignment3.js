@@ -64,6 +64,10 @@ export class NatureNavigators extends Scene {
         this.species2_speed = 1;
         this.species3_speed = 1;
         this.species4_speed = 1;
+        this.species1_size = 0.5;
+        this.species2_size = 0.5;
+        this.species3_size = 0.5;
+        this.species4_size = 0.5;
         this.last_update_time = 0;
         this.new_food_per_day = 100;
         this.last_food_grown_time = 0;
@@ -124,6 +128,7 @@ export class NatureNavigators extends Scene {
 
     make_control_panel() {
         this.create_input_box("Species 1 (Red) speed", "species1_speed", this.species1_speed);
+        this.create_input_box("size", "species1_size", this.species1_size);
         this.new_line();
         this.create_input_box("Species 2 (Purple) speed", "species2_speed", this.species2_speed);
         this.new_line();
@@ -175,11 +180,9 @@ export class NatureNavigators extends Scene {
     }
 
     draw_minions(context, program_state) {
-        let minions_drawn = 0;
         for (let minion of this.minions) {
             let minion_transform = Mat4.translation(minion.position[0], minion.position[1], minion.position[2]);
-            this.shapes.creature.draw(context, program_state, minion_transform, minion.color);
-            minions_drawn += 1;
+            minion.draw(context, program_state, minion_transform, minion.color);
             if (!this.paused) {
                 minion.position = minion.position.plus(minion.movement_direction.times(minion.speed));
             }
@@ -300,6 +303,15 @@ export class NatureNavigators extends Scene {
             switch(minion.species) {
                 case "species1":
                     minion.speed = this.species1_speed;
+                    if (minion.radius != this.species1_size) {
+                        let new_minion = new Minion(minion.color, this.species1_size);
+                        new_minion.position = minion.position
+                        new_minion.color = minion.color;
+                        new_minion.speed = minion.speed;
+                        new_minion.species = minion.species;
+                        this.minions.push(new_minion);
+                    }
+
                     break;
                 case "species2":
                     minion.speed = this.species2_speed;

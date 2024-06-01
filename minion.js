@@ -10,21 +10,21 @@ export {minion_defs};
 
 const Minion = minion_defs.Minion =
     class Minion extends Shape {
-        constructor(species) {
+        constructor(species, radius=0.5) {
             super("positions", "normals", "texture_coords");
 
             // Create the ellipsoid body (stretched sphere)
-            const ellipsoid = new defs.Subdivision_Sphere(2);
+            this.ellipsoid = new defs.Subdivision_Sphere(2);
             // Create the circular head
-            const circle = new defs.Subdivision_Sphere(4); // Adjust the subdivisions for the desired smoothness
+            this.circle = new defs.Subdivision_Sphere(4); // Adjust the subdivisions for the desired smoothness
 
             // Define transformations
-            const ellipsoid_transform = Mat4.translation(0, .59, 0)
-                .times(Mat4.scale(0.5, 0.75, 0.5)); // Scale the sphere to form an ellipsoid
-            const circle_transform = Mat4.translation(0, 1.58, 0)
-                .times(Mat4.scale(0.25, 0.25, 0.25)); // Position and scale the circle
+            this.radius = radius;
+            this.ellipsoid_transform = Mat4.translation(0, this.radius, 0)
+                .times(Mat4.scale(this.radius, this.radius*1.5, this.radius)); // Scale the sphere to form an ellipsoid
+            this.circle_transform = Mat4.translation(0, 3*this.radius, 0)
+                .times(Mat4.scale(this.radius*0.5, this.radius*0.5, this.radius*0.5)); // Position and scale the circle
 
-            // Initialize arrays.plus(Mat4.translation(0,1.29,0))
             this.arrays.position = [];
 
 
@@ -34,7 +34,7 @@ const Minion = minion_defs.Minion =
 
             this.movement_direction = vec3(0, 0, 0);
             this.speed = 1;
-            this.radius = 0.5;
+
             this.starting_energy = 10;
             this.energy = this.starting_energy;
 
@@ -48,15 +48,15 @@ const Minion = minion_defs.Minion =
 
             // Transform and add the ellipsoid vertices
             for (let i = 0; i < ellipsoid.arrays.position.length; i++) {
-                this.arrays.position.push(ellipsoid_transform.times(ellipsoid.arrays.position[i].to4(1)).to3());
-                this.arrays.normal.push(ellipsoid_transform.times(ellipsoid.arrays.normal[i].to4(0)).to3());
+                this.arrays.position.push(this.ellipsoid_transform.times(ellipsoid.arrays.position[i].to4(1)).to3());
+                this.arrays.normal.push(this.ellipsoid_transform.times(ellipsoid.arrays.normal[i].to4(0)).to3());
                 this.arrays.texture_coord.push(ellipsoid.arrays.texture_coord[i]);
             }
 
             // Transform and add the circle vertices
             for (let i = 0; i < circle.arrays.position.length; i++) {
-                this.arrays.position.push(circle_transform.times(circle.arrays.position[i].to4(1)).to3());
-                this.arrays.normal.push(circle_transform.times(circle.arrays.normal[i].to4(0)).to3());
+                this.arrays.position.push(this.circle_transform.times(circle.arrays.position[i].to4(1)).to3());
+                this.arrays.normal.push(this.circle_transform.times(circle.arrays.normal[i].to4(0)).to3());
                 this.arrays.texture_coord.push(circle.arrays.texture_coord[i]);
             }
 
@@ -112,5 +112,34 @@ const Minion = minion_defs.Minion =
             this.xProb_adjustment = x_prob;//*0.003;// * prob_adjustment_factor;
             this.zProb_adjustment = z_prob;//*0.003;// * prob_adjustment_factor;
             this.plane = plane;
+        }
+        update_size(radius) {
+            this.radius = radius;
+            this.ellipsoid_transform = Mat4.translation(0, this.radius, 0)
+                .times(Mat4.scale(this.radius, this.radius*1.5, this.radius)); // Scale the sphere to form an ellipsoid
+            this.circle_transform = Mat4.translation(0, 3*this.radius, 0)
+                .times(Mat4.scale(this.radius*0.5, this.radius*0.5, this.radius*0.5))
+            this.arrays.position = [];
+            this.arrays.normal = [];
+            this.arrays.texture_coord = [];
+            this.indices = [];
+            // Transform and add the ellipsoid vertices
+            for (let i = 0; i < this.ellipsoid.arrays.position.length; i++) {
+                this.arrays.position.push(this.ellipsoid_transform.times(this.ellipsoid.arrays.position[i].to4(1)).to3());
+                this.arrays.normal.push(this.ellipsoid_transform.times(this.ellipsoid.arrays.normal[i].to4(0)).to3());
+                this.arrays.texture_coord.push(this.ellipsoid.arrays.texture_coord[i]);
+            }
+
+            // Transform and add the circle vertices
+            for (let i = 0; i < this.circle.arrays.position.length; i++) {
+                this.arrays.position.push(this.circle_transform.times(this.circle.arrays.position[i].to4(1)).to3());
+                this.arrays.normal.push(this.circle_transform.times(this.circle.arrays.normal[i].to4(0)).to3());
+                this.arrays.texture_coord.push(this.circle.arrays.texture_coord[i]);
+            }
+
+            // Combine the indices from both shapes
+            this.indices.push(...this.ellipsoid.indices);
+            const circle_offset = this.ellipsoid.arrays.position.length;
+            this.indices.push(...this.circle.indices.map(i => i + circle_offset));
         }
     }
