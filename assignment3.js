@@ -355,7 +355,7 @@ export class NatureNavigators extends Scene {
         new_minion.color = minion.color;
         new_minion.speed = minion.speed;
         new_minion.species = minion.species;
-        new_minion.energy = (new_size/minion.radius) * minion.energy;
+        new_minion.energy = (new_size/minion.radius) * minion.energy + 1;
         return new_minion;
     }
     update_minion_traits() {
