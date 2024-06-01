@@ -51,7 +51,7 @@ export class NatureNavigators extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#0066FF")}), //blue
 
             squareMat: new Material(new defs.Phong_Shader(), // Adding a material for the square
-                {ambient: .5, diffusivity: .6, color: hex_color("#CFFF04")}),
+                {ambient: .5, diffusivity: .6, color: hex_color("#A9A9A9")}),
 
 
         };
