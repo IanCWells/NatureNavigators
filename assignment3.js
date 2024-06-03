@@ -77,9 +77,19 @@ export class NatureNavigators extends Scene {
         this.new_food_per_day = 100;
         this.last_food_grown_time = 0;
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
+        
+        this.minion_initial_amt = 6;
+        this.minion_positions = this.generate_minion_spawn_positions(this.minion_initial_amt);
+        
+        this.new_minion_count = {
+            species1: this.minion_initial_amt,
+            species2: this.minion_initial_amt,
+            species3: this.minion_initial_amt,
+            species4: this.minion_initial_amt
+        };
+        console.log("NEW MINION COUNT ", this.new_minion_count)
 
 
-        this.minion_positions = this.generate_minion_spawn_positions();
         this.minions = [];
         const colors = ["species1", "species2", "species3", "species4"];
         const edges = ["top", "bottom", "left", "right"];
@@ -97,7 +107,8 @@ export class NatureNavigators extends Scene {
         return this.background_color;
     }
 
-    generate_minion_spawn_positions(x = 4) {
+    generate_minion_spawn_positions(x) {
+        // this.minion_initial_amt = x;
         const positions = {
             top: [],
             bottom: [],
@@ -178,17 +189,26 @@ export class NatureNavigators extends Scene {
         for (let minion of this.minions) {
             species_counts[minion.species]++;
         }
-    
+        let species = ["species1", "species2", "species3", "species4"];
+
         let bar_width = 1;
         let bar_gap = 8.75;
-        // let max_bar_height = this.map_size / 2; // Maximum bar height
-    
-        let species = ["species1", "species2", "species3", "species4"];
+        // let max_bar_height = 4; // Maximum bar height
+        let total_minions_alive = this.minions.length / species.length;
+
+        console.log("NEW MINION COUNT ", this.new_minion_count)
+
+
+
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
-            let y_scale = species_counts[species_name] / species.length;
-            
+            let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
+            // console.log("species_counts[species_name]: ", species_counts[species_name])
+            // console.log("species.length: ", species.length)
+            // console.log("total_minions_alive", total_minions_alive)
+            // console.log("y_scale: ", y_scale)
+
             let bar_transform = Mat4.identity()
                 .times(Mat4.translation(
                     -this.map_size / 2 + bar_width / 2 + i * (bar_width + bar_gap),
@@ -349,6 +369,7 @@ export class NatureNavigators extends Scene {
         }
         this.last_update_time = this.t;
     }
+
     change_minion_size(minion, new_size) {
         let new_minion = new Minion(minion.color, new_size);
         new_minion.position = minion.position
@@ -358,6 +379,7 @@ export class NatureNavigators extends Scene {
         new_minion.energy = (new_size/minion.radius) * minion.energy + 1;
         return new_minion;
     }
+
     update_minion_traits() {
         var updated_minions = this.minions;
         for (var i = 0; i < this.minions.length; i++) {
@@ -406,11 +428,23 @@ export class NatureNavigators extends Scene {
                 new_minion.position = minion.position.plus(vec3(0,0,0).minus(minion.position).normalized().times(0.05));
                 new_minion.color = minion.color;
                 new_minion.speed = minion.speed;
+                
                 new_minion.species = minion.species;
+                
                 minion.energy -= minion.starting_energy;
+
                 this.minions.push(new_minion);
+
+                if (this.new_minion_count.hasOwnProperty(new_minion.species)) {
+                    this.new_minion_count[new_minion.species]++;
+                } else {
+                    console.error("Unknown species: " + new_minion.species);
+                }
+                
+
             }
         }
+
     }
 
     grow_food() {
