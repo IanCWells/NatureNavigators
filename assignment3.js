@@ -194,16 +194,21 @@ export class NatureNavigators extends Scene {
         let bar_width = 1;
         let bar_gap = 8.75;
         // let max_bar_height = 4; // Maximum bar height
-        let total_minions_alive = this.minions.length / species.length;
+        // let total_minions_alive = this.minions.length / species.length;
 
-        console.log("NEW MINION COUNT ", this.new_minion_count)
+        // console.log("NEW MINION COUNT ", this.new_minion_count)
+        let max_new_minion_count = Math.max(...Object.values(this.new_minion_count));
 
 
 
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
-            let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
+            // let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
+            let y_scale = (species_counts[species_name] / max_new_minion_count);
+            
+
+
             // console.log("species_counts[species_name]: ", species_counts[species_name])
             // console.log("species.length: ", species.length)
             // console.log("total_minions_alive", total_minions_alive)
