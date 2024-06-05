@@ -191,6 +191,9 @@ export class NatureNavigators extends Scene {
         }
         let species = ["species1", "species2", "species3", "species4"];
 
+
+        let max_alive_minions = Math.max(...Object.values(species_counts));
+
         let bar_width = 1;
         let bar_gap = 8.75;
         // let max_bar_height = 4; // Maximum bar height
@@ -203,7 +206,10 @@ export class NatureNavigators extends Scene {
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
-            let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
+            let y_scale = (species_counts[species_name] / max_alive_minions);
+
+
+            
             // console.log("species_counts[species_name]: ", species_counts[species_name])
             // console.log("species.length: ", species.length)
             // console.log("total_minions_alive", total_minions_alive)
