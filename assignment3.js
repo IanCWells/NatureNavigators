@@ -288,6 +288,7 @@ export class NatureNavigators extends Scene {
         this.species2_avg_speed = (total_speeds["species2"]/species_counts["species2"]).toFixed(2);
         this.species3_avg_speed = (total_speeds["species3"]/species_counts["species3"]).toFixed(2);
         this.species4_avg_speed = (total_speeds["species4"]/species_counts["species4"]).toFixed(2);
+
         this.species1_avg_size = (total_sizes["species1"]/species_counts["species1"]).toFixed(2);
         this.species2_avg_size = (total_sizes["species2"]/species_counts["species2"]).toFixed(2);
         this.species3_avg_size = (total_sizes["species3"]/species_counts["species3"]).toFixed(2);
@@ -297,6 +298,27 @@ export class NatureNavigators extends Scene {
         this.species2_avg_sight = (total_sights["species2"]/species_counts["species2"]).toFixed(2);
         this.species3_avg_sight = (total_sights["species3"]/species_counts["species3"]).toFixed(2);
         this.species4_avg_sight = (total_sights["species4"]/species_counts["species4"]).toFixed(2);
+
+        if (species_counts["species1"] == 0) {
+            this.species1_avg_speed = 0;
+            this.species1_avg_size = 0;
+            this.species1_avg_sight = 0;
+        }
+        if (species_counts["species2"] == 0) {
+            this.species2_avg_speed = 0;
+            this.species2_avg_size = 0;
+            this.species2_avg_sight = 0;
+        }
+        if (species_counts["species3"] == 0) {
+            this.species3_avg_speed = 0;
+            this.species3_avg_size = 0;
+            this.species3_avg_sight = 0;
+        }
+        if (species_counts["species4"] == 0) {
+            this.species4_avg_speed = 0;
+            this.species4_avg_size = 0;
+            this.species4_avg_sight = 0;
+        }
     }
     reset_minions() {
         this.minions_are_reset = true;
