@@ -68,6 +68,7 @@ const Minion = minion_defs.Minion =
 
         }
 
+
         movement() {
             let movement_prob = Math.random();
             let movement_x = 0;

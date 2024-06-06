@@ -65,6 +65,8 @@ export class NatureNavigators extends Scene {
         this.t = 0; // how long the simulation has been running for (unpaused time)
         this.last_t = 0; // used to keep track when time is paused
 
+
+
         this.species1_speed = 1;
         this.species2_speed = 1;
         this.species3_speed = 1;
@@ -79,6 +81,12 @@ export class NatureNavigators extends Scene {
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
         
         this.minion_initial_amt = 6;
+
+        this.minion_count_between_days1 = [0, this.minion_initial_amt]
+        this.minion_count_between_days2 = [0, this.minion_initial_amt]
+        this.minion_count_between_days3 = [0, this.minion_initial_amt]
+        this.minion_count_between_days4 = [0, this.minion_initial_amt]
+
         this.minion_positions = this.generate_minion_spawn_positions(this.minion_initial_amt);
         
         this.new_minion_count = {
@@ -87,7 +95,6 @@ export class NatureNavigators extends Scene {
             species3: this.minion_initial_amt,
             species4: this.minion_initial_amt
         };
-        console.log("NEW MINION COUNT ", this.new_minion_count)
 
 
         this.minions = [];
@@ -196,7 +203,6 @@ export class NatureNavigators extends Scene {
         // let max_bar_height = 4; // Maximum bar height
         let total_minions_alive = this.minions.length / species.length;
 
-        console.log("NEW MINION COUNT ", this.new_minion_count)
 
 
 
@@ -342,7 +348,7 @@ export class NatureNavigators extends Scene {
 
     check_new_day() {
         // there is a new day once every this.day_length seconds
-        if (Math.floor(this.t) % this.day_length == 0
+        if (Math.floor(this.t + 1) % this.day_length == 0
             && this.day <= Math.floor(this.t/this.day_length)) {
             this.day += 1;
             return true;
@@ -353,6 +359,7 @@ export class NatureNavigators extends Scene {
 
     setup_new_day(context,program_state) {
         this.minions_reproduce();
+
     }
 
     update_minion_health() {
@@ -364,7 +371,9 @@ export class NatureNavigators extends Scene {
             minion.energy -= 0.5 * minion.radius * minion.speed**2 * time_passed ; // KE = 0.5mv^2
             // check if any minions have died from losing all energy
             if (minion.energy <= 0) {
-                remaining_minions = remaining_minions.splice(i,1);
+                //MEMORY LEAK ISSUE???
+                this.minions.splice(i, 1); // Remove minion from array
+                //remaining_minions = remaining_minions.splice(i,1);
             }
         }
         this.last_update_time = this.t;
@@ -454,6 +463,93 @@ export class NatureNavigators extends Scene {
         }
     }
 
+    getSign(betweenDays_array) {
+        if(betweenDays_array[1] - betweenDays_array[0] >= 0){
+            //console.log("1")
+            return 1;
+        }
+        else if(betweenDays_array[1] - betweenDays_array[0] < 0)
+        {
+            //console.log("-1")
+            return -1;
+        }
+    }
+    evolve()
+    {
+        //this.minion_count_between_days1
+        let species_counts = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+
+        for (let minion of this.minions) {
+            species_counts[minion.species]++;
+        }
+
+        for(let species in species_counts)
+        {
+            if(species === "species1"){
+
+                this.minion_count_between_days1[0] = this.minion_count_between_days1[1];
+                this.minion_count_between_days1[1] = species_counts[species];
+
+            }
+            else if(species === "species2"){
+
+                this.minion_count_between_days2[0] = this.minion_count_between_days2[1];
+                this.minion_count_between_days2[1] = species_counts[species];
+
+            }
+            else if(species === "species3"){
+
+                this.minion_count_between_days3[0] = this.minion_count_between_days3[1];
+                this.minion_count_between_days3[1] = species_counts[species];
+
+            }
+            else if(species === "species4"){
+
+                this.minion_count_between_days4[0] = this.minion_count_between_days4[1];
+                this.minion_count_between_days4[1] = species_counts[species];
+
+            }
+
+        }
+
+
+            // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
+
+
+
+        let traitChange = 0.3
+
+        //Species 1
+        let randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days1);
+        this.species1_size = this.species1_size + randomize_evolve;
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days1);
+        this.species1_speed = this.species1_speed + randomize_evolve;
+
+        //Species 2
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days2);
+        this.species2_size = this.species2_size + randomize_evolve;
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days2);
+        this.species2_speed = this.species2_speed + randomize_evolve;
+
+        //Species 3
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days3);
+        this.species3_size = this.species3_size + randomize_evolve;
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days3);
+        this.species3_speed = this.species3_speed + randomize_evolve;
+
+        //Species 4
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days4);
+        this.species4_size = this.species4_size + randomize_evolve;
+        randomize_evolve = traitChange * Math.random() * this.getSign(this.minion_count_between_days4);
+        this.species4_speed = this.species4_speed + randomize_evolve;
+    }
+
+
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
@@ -473,6 +569,7 @@ export class NatureNavigators extends Scene {
 
         if (this.check_new_day()) {
             this.setup_new_day(context,program_state);
+            this.evolve()
         }
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
@@ -483,9 +580,7 @@ export class NatureNavigators extends Scene {
         this.grow_food();
         this.update_minion_traits();
         this.update_minion_health();
-        
         this.last_t = t;
-
         this.draw_graph(context,program_state);
     }
 }
