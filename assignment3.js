@@ -81,13 +81,10 @@ export class NatureNavigators extends Scene {
         this.minion_initial_amt = 6;
         this.minion_positions = this.generate_minion_spawn_positions(this.minion_initial_amt);
         
-        this.new_minion_count = {
-            species1: this.minion_initial_amt,
-            species2: this.minion_initial_amt,
-            species3: this.minion_initial_amt,
-            species4: this.minion_initial_amt
-        };
-        console.log("NEW MINION COUNT ", this.new_minion_count)
+
+        this.new_day_minion_max = -1;
+        this.count = 0;
+
 
 
         this.minions = [];
@@ -196,17 +193,33 @@ export class NatureNavigators extends Scene {
         // let max_bar_height = 4; // Maximum bar height
         // let total_minions_alive = this.minions.length / species.length;
 
-        // console.log("NEW MINION COUNT ", this.new_minion_count)
-        let max_new_minion_count = Math.max(...Object.values(this.new_minion_count));
+
+        console.log(species_counts)
 
 
+
+        if (this.count > 1) {
+            this.new_day_minion_max = Math.max(...Object.values(species_counts));
+            // console.log("MADE IT HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", this.count)
+            // console.log("LOOK AT MAXXXXXXX", this.new_day_minion_max)
+
+            this.count = 1;
+        }
+        // console.log("Max", this.new_day_minion_max)
+        // console.log("count", this.count)
 
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
-            // let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
-            let y_scale = (species_counts[species_name] / max_new_minion_count);
-            
+
+            let y_scale = 0;
+            if (this.new_day_minion_max != -1) {
+                y_scale = (species_counts[species_name] / this.new_day_minion_max);
+            }
+            else {
+                y_scale = (species_counts[species_name] / this.minion_initial_amt)
+            }
+            console.log("Y scale", y_scale)
 
 
             // console.log("species_counts[species_name]: ", species_counts[species_name])
@@ -440,11 +453,6 @@ export class NatureNavigators extends Scene {
 
                 this.minions.push(new_minion);
 
-                if (this.new_minion_count.hasOwnProperty(new_minion.species)) {
-                    this.new_minion_count[new_minion.species]++;
-                } else {
-                    console.error("Unknown species: " + new_minion.species);
-                }
                 
 
             }
@@ -478,6 +486,7 @@ export class NatureNavigators extends Scene {
 
         if (this.check_new_day()) {
             this.setup_new_day(context,program_state);
+            this.count++;
         }
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
