@@ -98,10 +98,6 @@ export class NatureNavigators extends Scene {
         this.species3_spawn_amt = this.minion_initial_amt;
         this.species4_spawn_amt = this.minion_initial_amt;
 
-        this.minion_count_between_days1 = [0, this.species1_spawn_amt]
-        this.minion_count_between_days2 = [0, this.species2_spawn_amt]
-        this.minion_count_between_days3 = [0, this.species3_spawn_amt]
-        this.minion_count_between_days4 = [0, this.species4_spawn_amt]
 
         this.minion_positions = this.generate_minion_spawn_positions();
         
@@ -204,6 +200,12 @@ export class NatureNavigators extends Scene {
         this.display_variable("Species 3 (Yellow) avg size", "species3_avg_size");
         this.display_variable("Species 4 (Blue)   avg size", "species4_avg_size");
         this.new_line();
+
+        this.display_variable("Species 1 (Red)    avg sight", "species1_avg_sight");
+        this.display_variable("Species 2 (Purple) avg sight", "species2_avg_sight");
+        this.display_variable("Species 3 (Yellow) avg sight", "species3_avg_sight");
+        this.display_variable("Species 4 (Blue)   avg sight", "species4_avg_sight");
+        this.new_line();
         this.key_triggered_button("Update Minion Spawns (Must be before starting simulation)", ["u"], () => {
             if (!this.pressed_play) {
                 this.reset_minions();
@@ -263,10 +265,17 @@ export class NatureNavigators extends Scene {
             species3: 0,
             species4: 0
         };
+        let total_sights = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
         for (let minion of this.minions) {
             species_counts[minion.species]++;
             total_speeds[minion.species] += minion.speed;
             total_sizes[minion.species] += 2*minion.radius;
+            total_sights[minion.species] += minion.sight;
         }
         this.species1_avg_speed = (total_speeds["species1"]/species_counts["species1"]).toFixed(2);
         this.species2_avg_speed = (total_speeds["species2"]/species_counts["species2"]).toFixed(2);
@@ -276,6 +285,11 @@ export class NatureNavigators extends Scene {
         this.species2_avg_size = (total_sizes["species2"]/species_counts["species2"]).toFixed(2);
         this.species3_avg_size = (total_sizes["species3"]/species_counts["species3"]).toFixed(2);
         this.species4_avg_size = (total_sizes["species4"]/species_counts["species4"]).toFixed(2);
+
+        this.species1_avg_sight = (total_sights["species1"]/species_counts["species1"]).toFixed(2);
+        this.species2_avg_sight = (total_sights["species2"]/species_counts["species2"]).toFixed(2);
+        this.species3_avg_sight = (total_sights["species3"]/species_counts["species3"]).toFixed(2);
+        this.species4_avg_sight = (total_sights["species4"]/species_counts["species4"]).toFixed(2);
     }
     reset_minions() {
         this.minions_are_reset = true;
@@ -615,7 +629,9 @@ export class NatureNavigators extends Scene {
                         minion.speed = this.species1_speed;
                         minion.species_speed = this.species1_speed;
                     }
+
                     minion.sight = this.species1_sight;
+
                     if (minion.species_radius * 2 != this.species1_size) {
                         let new_minion = this.change_minion_size(minion,this.species1_size/2);
                         updated_minions.push(new_minion);
@@ -670,7 +686,9 @@ export class NatureNavigators extends Scene {
                 new_minion.position = minion.position.plus(vec3(0,0,0).minus(minion.position).normalized().times(0.05));
                 new_minion.color = minion.color;
                 new_minion.speed = Math.max(minion.speed + this.mutation_factor(), 0.1);
-                new_minion.sight = Math.max(minion.speed + this.mutation_factor(), 0);
+
+                new_minion.sight = Math.max(minion.sight + this.mutation_factor(), 0);
+
                 new_minion.species = minion.species;
                 new_minion.species_radius = minion.species_radius;
                 new_minion.species_speed = minion.species_speed;
