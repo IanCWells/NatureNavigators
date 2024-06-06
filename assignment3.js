@@ -82,18 +82,27 @@ export class NatureNavigators extends Scene {
         
         this.minion_initial_amt = 6;
 
-        this.minion_count_between_days1 = [0, this.minion_initial_amt]
-        this.minion_count_between_days2 = [0, this.minion_initial_amt]
-        this.minion_count_between_days3 = [0, this.minion_initial_amt]
-        this.minion_count_between_days4 = [0, this.minion_initial_amt]
+        this.species1_spawn_amt = this.minion_initial_amt;
+        this.species2_spawn_amt = this.minion_initial_amt;
+        this.species3_spawn_amt = this.minion_initial_amt;
+        this.species4_spawn_amt = this.minion_initial_amt;
 
-        this.minion_positions = this.generate_minion_spawn_positions(this.minion_initial_amt);
+        this.minion_count_between_days1 = [0, this.species1_spawn_amt]
+        this.minion_count_between_days2 = [0, this.species2_spawn_amt]
+        this.minion_count_between_days3 = [0, this.species3_spawn_amt]
+        this.minion_count_between_days4 = [0, this.species4_spawn_amt]
+
+        this.minion_positions = this.generate_minion_spawn_positions();
         
+        this.minion_reset_max = this.minion_initial_amt;
 
         this.new_day_minion_max = -1;
         this.count = 0;
 
 
+        this.simulation_started = false;  
+        this.pressed_play = false;
+        this.minions_are_reset = false;
 
         this.minions = [];
         const colors = ["species1", "species2", "species3", "species4"];
@@ -108,28 +117,46 @@ export class NatureNavigators extends Scene {
             }
         }
     }
+
+
+
     get_background_color() {
         return this.background_color;
     }
 
-    generate_minion_spawn_positions(x) {
+    generate_minion_spawn_positions() {
         // this.minion_initial_amt = x;
+
+        let w = this.species1_spawn_amt;
+        let x = this.species2_spawn_amt;
+        let y = this.species3_spawn_amt;
+        let z = this.species4_spawn_amt;
+        
         const positions = {
             top: [],
             bottom: [],
             left: [],
             right: []
         };
+
         const map_edge = this.map_size / 2;
 
+        for (let i = 0; i < w; i++) {
+            let offset = (i / (w - 1)) * this.map_size - map_edge;
+            positions.top.push(vec3(offset, 0, map_edge));
+        }
         for (let i = 0; i < x; i++) {
             let offset = (i / (x - 1)) * this.map_size - map_edge;
-            positions.top.push(vec3(offset, 0, map_edge));
             positions.bottom.push(vec3(offset, 0, -map_edge));
+        }
+        for (let i = 0; i < y; i++) {
+            let offset = (i / (y - 1)) * this.map_size - map_edge;
             positions.left.push(vec3(-map_edge, 0, offset));
+        }
+        for (let i = 0; i < z; i++) {
+            let offset = (i / (z - 1)) * this.map_size - map_edge;
             positions.right.push(vec3(map_edge, 0, offset));
         }
-
         return positions;
     }
 
@@ -148,23 +175,91 @@ export class NatureNavigators extends Scene {
     }
 
     make_control_panel() {
-        this.create_input_box("Species 1 (Red) speed", "species1_speed", this.species1_speed);
-        this.create_input_box("size", "species1_size", this.species1_size);
+
+
+        if (this.new_day_minion_max == -1){
+            this.display_variable("Max minions", "minion_reset_max");
+        }
+        else {
+            this.display_variable("Max minions", "new_day_minion_max");
+        }
         this.new_line();
-        this.create_input_box("Species 2 (Purple) speed", "species2_speed", this.species2_speed);
-        this.create_input_box("size", "species2_size", this.species2_size);
+
+
+        this.key_triggered_button("Update Minion Spawns (Must be before starting simulation)", ["u"], () => {
+            if (!this.pressed_play) {
+                this.reset_minions();
+            } else {
+                console.warn("Cannot update minion spawns after the simulation has started.");
+            }
+            
+        });
         this.new_line();
-        this.create_input_box("Species 3 (Yellow) speed", "species3_speed", this.species3_speed);
-        this.create_input_box("size", "species3_size", this.species3_size);
         this.new_line();
-        this.create_input_box("Species 4 (Blue) speed", "species4_speed", this.species4_speed);
-        this.create_input_box("size", "species4_size", this.species4_size);
+
+        this.create_input_box("Species 1 (Red) Speed:", "species1_speed", this.species1_speed);
+        this.create_input_box("Species 1 (Red) Size: ", "species1_size", this.species1_size);
+        this.create_input_box("Species 1 (Red) Spawn:", "species1_spawn_amt", this.species1_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 2 (Purple) Speed:", "species2_speed", this.species2_speed);
+        this.create_input_box("Species 2 (Purple) Size: ", "species2_size", this.species2_size);
+        this.create_input_box("Species 2 (Purple) Spawn: ", "species2_spawn_amt", this.species2_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 3 (Yellow) Speed:", "species3_speed", this.species3_speed);
+        this.create_input_box("Species 3 (Yellow) Size: ", "species3_size", this.species3_size);
+        this.create_input_box("Species 3 (Yellow) Spawn: ", "species3_spawn_amt", this.species3_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 4 (Blue) Speed:", "species4_speed", this.species4_speed);
+        this.create_input_box("Species 4 (Blue) Size: ", "species4_size", this.species4_size);
+        this.create_input_box("Species 4 (Blue) Spawn: ", "species4_spawn_amt", this.species4_spawn_amt);
         this.new_line();
         this.key_triggered_button("Play/Pause Simulation", ["p"], () => {
             this.paused = !this.paused;
+            this.pressed_play = true;
         });
+        this.new_line();
+
     }
 
+
+    reset_minions() {
+        this.minions_are_reset = true;
+        this.minions = [];
+        this.minion_positions = this.generate_minion_spawn_positions();
+        
+        const colors = ["species1", "species2", "species3", "species4"];
+        const edges = ["top", "bottom", "left", "right"];
+
+        
+        let speciesCount = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+
+        for (let i = 0; i < edges.length; i++) {
+            for (let j = 0; j < this.minion_positions[edges[i]].length; j++) {
+                let minion = new Minion(colors[i]);
+                minion.position = this.minion_positions[edges[i]][j];
+                minion.color = this.materials[colors[i]];
+                this.minions.push(minion);
+
+                speciesCount[colors[i]]++;
+
+            }
+        }
+        let maxSpecies = colors[0];
+        for (let i = 1; i < colors.length; i++) {
+            if (speciesCount[colors[i]] > speciesCount[maxSpecies]) {
+                maxSpecies = colors[i];
+            }
+        }
+
+        this.minion_reset_max = maxSpecies
+    }
+
+    
     draw_grass(context, program_state) {
         let surface_transform = Mat4.identity()
             .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
@@ -204,6 +299,7 @@ export class NatureNavigators extends Scene {
 
         // console.log(species_counts)
 
+        this.new_day_minion_max = Math.max(...Object.values(species_counts));
 
 
         if (this.count > 0) {
@@ -225,7 +321,7 @@ export class NatureNavigators extends Scene {
                 y_scale = (species_counts[species_name] / this.new_day_minion_max);
             }
             else {
-                y_scale = (species_counts[species_name] / this.minion_initial_amt)
+                y_scale = (species_counts[species_name] / this.minion_reset_max)
             }
             // console.log("Y scale", y_scale)
 
@@ -603,6 +699,8 @@ export class NatureNavigators extends Scene {
             this.count++;
             // console.log("WENT INTO THE CHECKER")
         }
+
+
 
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
