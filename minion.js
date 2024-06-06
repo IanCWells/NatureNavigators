@@ -38,7 +38,7 @@ const Minion = minion_defs.Minion =
             this.starting_energy = 10*2*radius;
             this.energy = this.starting_energy;
 
-            this.sight = 30;
+            this.sight = 10;
 
             this.xProb_adjustment = 0;
             this.zProb_adjustment = 0;
@@ -49,6 +49,7 @@ const Minion = minion_defs.Minion =
             // used for when the traits of the whole species are manually updated
             this.species_radius = radius;
             this.species_speed = 1;
+            this.species_sight = 10
 
             this.plane = 'x';
 

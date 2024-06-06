@@ -88,7 +88,8 @@ export class NatureNavigators extends Scene {
         this.last_update_time = 0;
         this.new_food_per_day = 100;
         this.last_food_grown_time = 0;
-        this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
+        this.starting_food = 100;
+        this.food_positions = this.generate_food_positions(this.starting_food); // Generate positions for 10 food items
         
         this.minion_initial_amt = 6;
 
@@ -209,12 +210,18 @@ export class NatureNavigators extends Scene {
         this.key_triggered_button("Update Minion Spawns (Must be before starting simulation)", ["u"], () => {
             if (!this.pressed_play) {
                 this.reset_minions();
+                //this.minion_positions = this.generate_minion_spawn_positions();
+                //this.food_positions = this.generate_food_positions(this.starting_food);
+
             } else {
                 console.warn("Cannot update minion spawns after the simulation has started.");
             }
             
         });
         this.new_line();
+        this.new_line();
+        this.create_input_box("Food Growth Rate", "new_food_per_day", this.new_food_per_day);
+
         this.new_line();
 
         this.create_input_box("Species 1 (Red) Speed:", "species1_speed", this.species1_speed);
@@ -295,6 +302,8 @@ export class NatureNavigators extends Scene {
         this.minions_are_reset = true;
         this.minions = [];
         this.minion_positions = this.generate_minion_spawn_positions();
+
+
         
         const colors = ["species1", "species2", "species3", "species4"];
         const edges = ["top", "bottom", "left", "right"];
@@ -498,8 +507,6 @@ export class NatureNavigators extends Scene {
 
             //if shortest distance is 0, they are blind
             let shortDistance = sight;
-
-
             for (let pos of this.food_positions) {
                 let food_x = pos[0];
                 let food_y = pos[1];
@@ -629,8 +636,10 @@ export class NatureNavigators extends Scene {
                         minion.speed = this.species1_speed;
                         minion.species_speed = this.species1_speed;
                     }
-
-                    minion.sight = this.species1_sight;
+                    if (minion.species_sight != this.species1_sight) {
+                        minion.sight = this.species1_sight;
+                        minion.species_sight = this.species1_sight;
+                    }
 
                     if (minion.species_radius * 2 != this.species1_size) {
                         let new_minion = this.change_minion_size(minion,this.species1_size/2);
@@ -643,7 +652,10 @@ export class NatureNavigators extends Scene {
                         minion.speed = this.species2_speed;
                         minion.species_speed = this.species2_speed;
                     }
-                    minion.sight = this.species2_sight;
+                    if (minion.species_sight != this.species2_sight) {
+                        minion.sight = this.species2_sight;
+                        minion.species_sight = this.species2_sight;
+                    }
                     if (minion.species_radius * 2 != this.species2_size) {
                         let new_minion = this.change_minion_size(minion,this.species2_size/2);
                         updated_minions.push(new_minion);
@@ -654,9 +666,11 @@ export class NatureNavigators extends Scene {
                     if (minion.species_speed != this.species3_speed) {
                         minion.speed = this.species3_speed;
                         minion.species_speed = this.species3_speed;
-
                     }
-                    minion.sight = this.species3_sight;
+                    if (minion.species_sight != this.species3_sight) {
+                        minion.sight = this.species3_sight;
+                        minion.species_sight = this.species3_sight;
+                    }
                     if (minion.species_radius * 2 != this.species3_size) {
                         let new_minion = this.change_minion_size(minion,this.species3_size/2);
                         updated_minions.push(new_minion);
@@ -668,7 +682,10 @@ export class NatureNavigators extends Scene {
                         minion.speed = this.species4_speed;
                         minion.species_speed = this.species4_speed;
                     }
-                    minion.sight = this.species4_sight;
+                    if (minion.species_sight != this.species4_sight) {
+                        minion.sight = this.species4_sight;
+                        minion.species_sight = this.species4_sight;
+                    }
                     if (minion.species_radius * 2 != this.species4_size) {
                         let new_minion = this.change_minion_size(minion,this.species4_size/2);
                         updated_minions.push(new_minion);
@@ -687,7 +704,7 @@ export class NatureNavigators extends Scene {
                 new_minion.color = minion.color;
                 new_minion.speed = Math.max(minion.speed + this.mutation_factor(), 0.1);
 
-                new_minion.sight = Math.max(minion.sight + this.mutation_factor(), 0);
+                new_minion.sight = Math.max(minion.sight + this.mutation_factor(), 0.1);
 
                 new_minion.species = minion.species;
                 new_minion.species_radius = minion.species_radius;
