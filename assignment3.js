@@ -77,10 +77,10 @@ export class NatureNavigators extends Scene {
         this.species3_size = 1;
         this.species4_size = 1;
 
-        this.species1_sight = 1;
-        this.species2_sight = 1;
-        this.species3_sight = 1;
-        this.species4_sight = 1;
+        this.species1_sight = 10;
+        this.species2_sight = 10;
+        this.species3_sight = 10;
+        this.species4_sight = 10;
 
 
 
@@ -433,7 +433,7 @@ export class NatureNavigators extends Scene {
             //if minions start with sight = 1, they should be able to see half of the map
 
             let sight = minion.sight;
-            let base_sight = 8;
+            let base_sight = 0;
             sight = base_sight + 2 * sight;
             if(sight <= 0)
             {
