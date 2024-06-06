@@ -202,16 +202,16 @@ export class NatureNavigators extends Scene {
         // let total_minions_alive = this.minions.length / species.length;
 
 
-        console.log(species_counts)
+        // console.log(species_counts)
 
 
 
-        if (this.count > 1) {
+        if (this.count > 0) {
             this.new_day_minion_max = Math.max(...Object.values(species_counts));
             // console.log("MADE IT HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", this.count)
             // console.log("LOOK AT MAXXXXXXX", this.new_day_minion_max)
 
-            this.count = 1;
+            this.count = 0;
         }
         // console.log("Max", this.new_day_minion_max)
         // console.log("count", this.count)
@@ -227,7 +227,7 @@ export class NatureNavigators extends Scene {
             else {
                 y_scale = (species_counts[species_name] / this.minion_initial_amt)
             }
-            console.log("Y scale", y_scale)
+            // console.log("Y scale", y_scale)
 
 
             // console.log("species_counts[species_name]: ", species_counts[species_name])
@@ -369,6 +369,17 @@ export class NatureNavigators extends Scene {
     check_new_day() {
         // there is a new day once every this.day_length seconds
         if (Math.floor(this.t + 1) % this.day_length == 0
+            && this.day <= Math.floor(this.t/this.day_length)) {
+            this.day += 1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    check_new_day_graphs() {
+        // there is a new day once every this.day_length seconds
+        if (Math.floor(this.t) % this.day_length == 0
             && this.day <= Math.floor(this.t/this.day_length)) {
             this.day += 1;
             return true;
@@ -584,8 +595,15 @@ export class NatureNavigators extends Scene {
 
         if (this.check_new_day()) {
             this.setup_new_day(context,program_state);
-            this.count++;
+
         }
+
+        if (this.check_new_day_graphs()) {
+            this.setup_new_day(context,program_state);
+            this.count++;
+            // console.log("WENT INTO THE CHECKER")
+        }
+
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
         this.draw_food(context,program_state);
