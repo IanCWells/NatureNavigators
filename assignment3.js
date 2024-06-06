@@ -188,10 +188,12 @@ export class NatureNavigators extends Scene {
         this.display_variable("Species 2 (Purple) avg speed", "species2_avg_speed");
         this.display_variable("Species 3 (Yellow) avg speed", "species3_avg_speed");
         this.display_variable("Species 4 (Blue)   avg speed", "species4_avg_speed");
+        this.new_line();
         this.display_variable("Species 1 (Red)    avg size", "species1_avg_size");
         this.display_variable("Species 2 (Purple) avg size", "species2_avg_size");
         this.display_variable("Species 3 (Yellow) avg size", "species3_avg_size");
         this.display_variable("Species 4 (Blue)   avg size", "species4_avg_size");
+        this.new_line();
         this.key_triggered_button("Update Minion Spawns (Must be before starting simulation)", ["u"], () => {
             if (!this.pressed_play) {
                 this.reset_minions();
@@ -663,8 +665,6 @@ export class NatureNavigators extends Scene {
             this.count++;
             // console.log("WENT INTO THE CHECKER")
         }
-
-
 
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
