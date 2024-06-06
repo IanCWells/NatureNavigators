@@ -44,6 +44,10 @@ const Minion = minion_defs.Minion =
             this.color = "species1"; // the material the minion is drawn with
             this.species = species;
 
+            // used for when the traits of the whole species are manually updated
+            this.species_radius = radius;
+            this.species_speed = 1;
+
             this.plane = 'x';
 
             // Transform and add the ellipsoid vertices

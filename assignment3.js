@@ -64,6 +64,7 @@ export class NatureNavigators extends Scene {
         this.paused = true;
         this.t = 0; // how long the simulation has been running for (unpaused time)
         this.last_t = 0; // used to keep track when time is paused
+        this.mutation_rate = 0.3;
 
 
 
@@ -417,6 +418,7 @@ export class NatureNavigators extends Scene {
         new_minion.speed = minion.speed;
         new_minion.species = minion.species;
         new_minion.energy = (new_size/minion.radius) * minion.energy + 1;
+        new_minion.species_radius = new_size;
         return new_minion;
     }
 
@@ -426,32 +428,44 @@ export class NatureNavigators extends Scene {
             let minion = this.minions[i];
             switch(minion.species) {
                 case "species1":
-                    minion.speed = this.species1_speed;
-                    if (minion.radius * 2 != this.species1_size) {
+                    if (minion.species_speed != this.species1_speed) {
+                        minion.speed = this.species1_speed;
+                        minion.species_speed = this.species1_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species1_size) {
                         let new_minion = this.change_minion_size(minion,this.species1_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species2":
-                    minion.speed = this.species2_speed;
-                    if (minion.radius * 2 != this.species2_size) {
+                    if (minion.species_speed != this.species2_speed) {
+                        minion.speed = this.species2_speed;
+                        minion.species_speed = this.species2_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species2_size) {
                         let new_minion = this.change_minion_size(minion,this.species2_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species3":
-                    minion.speed = this.species3_speed;
-                    if (minion.radius * 2 != this.species3_size) {
+                    if (minion.species_speed != this.species3_speed) {
+                        minion.speed = this.species3_speed;
+                        minion.species_speed = this.species3_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species3_size) {
                         let new_minion = this.change_minion_size(minion,this.species3_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species4":
-                    minion.speed = this.species4_speed;
-                    if (minion.radius * 2 != this.species4_size) {
+                    if (minion.species_speed != this.species4_speed) {
+                        minion.speed = this.species4_speed;
+                        minion.species_speed = this.species4_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species4_size) {
                         let new_minion = this.change_minion_size(minion,this.species4_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
@@ -469,14 +483,16 @@ export class NatureNavigators extends Scene {
                 new_minion.color = minion.color;
                 new_minion.speed = Math.max(minion.speed + this.mutation_factor(), 0.1);
                 new_minion.species = minion.species;
+                new_minion.species_radius = minion.species_radius;
+                new_minion.species_speed = minion.species_speed;
                 minion.energy -= minion.starting_energy;
                 this.minions.push(new_minion);
             }
         }
     }
 
-    mutation_factor() { // return a random mutation factor between -0.5 and 0.5
-        return Math.random() - 0.5
+    mutation_factor() { // return a random mutation factor between -this.mutation_rate and this.mutation_rate
+        return (Math.random() - 0.5) * 2 * this.mutation_rate;
     }
 
     grow_food() {
@@ -522,7 +538,7 @@ export class NatureNavigators extends Scene {
         this.draw_minions(context,program_state);
         this.check_eaten_food();
         this.grow_food();
-        //this.update_minion_traits();
+        this.update_minion_traits();
         this.update_minion_health();
         this.last_t = t;
         this.draw_graph(context,program_state);
