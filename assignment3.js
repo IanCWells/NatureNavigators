@@ -3,7 +3,7 @@ import {minion_defs} from './minion.js';
 import {food_defs} from './food.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
 const {
     Minion
@@ -11,6 +11,11 @@ const {
 const {
     Food
 } = food_defs;
+
+const {
+    Textured_Phong
+} = defs;
+
 
 export class NatureNavigators extends Scene {
     constructor() {
@@ -49,12 +54,16 @@ export class NatureNavigators extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#FFFF00")}), //yellow
             species4: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#0066FF")}), //blue
-
             squareMat: new Material(new defs.Phong_Shader(), // Adding a material for the square
                 {ambient: .5, diffusivity: .6, color: hex_color("#A9A9A9")}),
-
-
+             
+            skull: new Material(new Textured_Phong(), 
+                {
+                ambient: 0.5, diffusivity: 0.1, specularity: 0.1, color: hex_color("#ffffff"), 
+                texture: new Texture("assets/skull.png")}),
         };
+
+
         this.background_color = color(0.5, 0.8, 0.93, 1);
         this.day_length = 30; // how long a day is in seconds
         this.map_size = 30;
@@ -87,7 +96,8 @@ export class NatureNavigators extends Scene {
             species3: this.minion_initial_amt,
             species4: this.minion_initial_amt
         };
-        console.log("NEW MINION COUNT ", this.new_minion_count)
+        // console.log("NEW MINION COUNT ", this.new_minion_count)
+        this.dead_minion_positions = [];
 
 
         this.minions = [];
@@ -196,7 +206,7 @@ export class NatureNavigators extends Scene {
         // let max_bar_height = 4; // Maximum bar height
         let total_minions_alive = this.minions.length / species.length;
 
-        console.log("NEW MINION COUNT ", this.new_minion_count)
+        // console.log("NEW MINION COUNT ", this.new_minion_count)
 
 
 
@@ -204,10 +214,6 @@ export class NatureNavigators extends Scene {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
             let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
-            // console.log("species_counts[species_name]: ", species_counts[species_name])
-            // console.log("species.length: ", species.length)
-            // console.log("total_minions_alive", total_minions_alive)
-            // console.log("y_scale: ", y_scale)
 
             let bar_transform = Mat4.identity()
                 .times(Mat4.translation(
@@ -365,9 +371,21 @@ export class NatureNavigators extends Scene {
             // check if any minions have died from losing all energy
             if (minion.energy <= 0) {
                 remaining_minions = remaining_minions.splice(i,1);
+                this.dead_minion_positions.push(minion.position);
             }
         }
         this.last_update_time = this.t;
+    }
+
+    draw_skulls(context, program_state) {
+        console.log("Dead minion positions:", this.dead_minion_positions);
+
+        for (let pos of this.dead_minion_positions) {
+            let skull_transform = Mat4.translation(pos[0], pos[1], pos[2]);
+            console.log("Transformation Matrix:", skull_transform);
+
+            this.shapes.sphere.draw(context, program_state, skull_transform, this.materials.skull);
+        }
     }
 
     change_minion_size(minion, new_size) {
@@ -487,5 +505,9 @@ export class NatureNavigators extends Scene {
         this.last_t = t;
 
         this.draw_graph(context,program_state);
+
+
+        this.draw_skulls(context, program_state);  // Draw skulls after updating minion health
+
     }
 }
