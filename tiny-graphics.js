@@ -1395,6 +1395,20 @@ const Scene = tiny.Scene =
             }));
         }
 
+        display_variable(label, variable_name, parent = this.control_panel) {
+            const container = parent.appendChild(document.createElement("div"));
+            container.textContent = `${label}: ${this[variable_name]}`;
+            container.style.fontSize = "20px";  // Adjust the font size as needed
+
+            // Update the display whenever the variable changes
+            const update_display = () => {
+                container.textContent = `${label}: ${this[variable_name]}`;
+            };
+        
+            // Use an interval to periodically check and update the display
+            setInterval(update_display, 100);
+        }
+
         key_triggered_button(description, shortcut_combination, callback, color = '#6E6460',
                              release_event, recipient = this, parent = this.control_panel) {
             // key_triggered_button():  Trigger any scene behavior by assigning
@@ -1431,7 +1445,7 @@ const Scene = tiny.Scene =
         create_input_box(label, variable_name, initial_value, parent = this.control_panel) {
             const container = parent.appendChild(document.createElement("div"));
             const label_element = container.appendChild(document.createElement("label"));
-            label_element.textContent = label + ": ";
+            label_element.textContent = label;
     
             const input = container.appendChild(document.createElement("input"));
             input.type = "number";

@@ -73,6 +73,9 @@ export class NatureNavigators extends Scene {
         this.paused = true;
         this.t = 0; // how long the simulation has been running for (unpaused time)
         this.last_t = 0; // used to keep track when time is paused
+        this.mutation_rate = 0.3;
+
+
 
         this.species1_speed = 1;
         this.species2_speed = 1;
@@ -88,6 +91,28 @@ export class NatureNavigators extends Scene {
         this.food_positions = this.generate_food_positions(100); // Generate positions for 10 food items
         
         this.minion_initial_amt = 6;
+
+        this.species1_spawn_amt = this.minion_initial_amt;
+        this.species2_spawn_amt = this.minion_initial_amt;
+        this.species3_spawn_amt = this.minion_initial_amt;
+        this.species4_spawn_amt = this.minion_initial_amt;
+
+        this.minion_count_between_days1 = [0, this.species1_spawn_amt]
+        this.minion_count_between_days2 = [0, this.species2_spawn_amt]
+        this.minion_count_between_days3 = [0, this.species3_spawn_amt]
+        this.minion_count_between_days4 = [0, this.species4_spawn_amt]
+
+        this.minion_positions = this.generate_minion_spawn_positions();
+        
+        this.minion_reset_max = this.minion_initial_amt;
+
+        this.new_day_minion_max = -1;
+        this.count = 0;
+
+
+        this.simulation_started = false;  
+        this.pressed_play = false;
+        this.minions_are_reset = false;
         this.minion_positions = this.generate_minion_spawn_positions(this.minion_initial_amt);
         
         this.new_minion_count = {
@@ -113,28 +138,46 @@ export class NatureNavigators extends Scene {
             }
         }
     }
+
+
+
     get_background_color() {
         return this.background_color;
     }
 
-    generate_minion_spawn_positions(x) {
+    generate_minion_spawn_positions() {
         // this.minion_initial_amt = x;
+
+        let w = this.species1_spawn_amt;
+        let x = this.species2_spawn_amt;
+        let y = this.species3_spawn_amt;
+        let z = this.species4_spawn_amt;
+        
         const positions = {
             top: [],
             bottom: [],
             left: [],
             right: []
         };
+
         const map_edge = this.map_size / 2;
 
+        for (let i = 0; i < w; i++) {
+            let offset = (i / (w - 1)) * this.map_size - map_edge;
+            positions.top.push(vec3(offset, 0, map_edge));
+        }
         for (let i = 0; i < x; i++) {
             let offset = (i / (x - 1)) * this.map_size - map_edge;
-            positions.top.push(vec3(offset, 0, map_edge));
             positions.bottom.push(vec3(offset, 0, -map_edge));
+        }
+        for (let i = 0; i < y; i++) {
+            let offset = (i / (y - 1)) * this.map_size - map_edge;
             positions.left.push(vec3(-map_edge, 0, offset));
+        }
+        for (let i = 0; i < z; i++) {
+            let offset = (i / (z - 1)) * this.map_size - map_edge;
             positions.right.push(vec3(map_edge, 0, offset));
         }
-
         return positions;
     }
 
@@ -153,23 +196,130 @@ export class NatureNavigators extends Scene {
     }
 
     make_control_panel() {
-        this.create_input_box("Species 1 (Red) speed", "species1_speed", this.species1_speed);
-        this.create_input_box("size", "species1_size", this.species1_size);
+
+        if (this.new_day_minion_max == -1){
+            this.display_variable("Max minions", "minion_reset_max");
+        }
+        else {
+            this.display_variable("Max minions", "new_day_minion_max");
+        }
         this.new_line();
-        this.create_input_box("Species 2 (Purple) speed", "species2_speed", this.species2_speed);
-        this.create_input_box("size", "species2_size", this.species2_size);
+        this.display_variable("Species 1 (Red)    avg speed", "species1_avg_speed");
+        this.display_variable("Species 2 (Purple) avg speed", "species2_avg_speed");
+        this.display_variable("Species 3 (Yellow) avg speed", "species3_avg_speed");
+        this.display_variable("Species 4 (Blue)   avg speed", "species4_avg_speed");
         this.new_line();
-        this.create_input_box("Species 3 (Yellow) speed", "species3_speed", this.species3_speed);
-        this.create_input_box("size", "species3_size", this.species3_size);
+        this.display_variable("Species 1 (Red)    avg size", "species1_avg_size");
+        this.display_variable("Species 2 (Purple) avg size", "species2_avg_size");
+        this.display_variable("Species 3 (Yellow) avg size", "species3_avg_size");
+        this.display_variable("Species 4 (Blue)   avg size", "species4_avg_size");
         this.new_line();
-        this.create_input_box("Species 4 (Blue) speed", "species4_speed", this.species4_speed);
-        this.create_input_box("size", "species4_size", this.species4_size);
+        this.key_triggered_button("Update Minion Spawns (Must be before starting simulation)", ["u"], () => {
+            if (!this.pressed_play) {
+                this.reset_minions();
+            } else {
+                console.warn("Cannot update minion spawns after the simulation has started.");
+            }
+            
+        });
+        this.new_line();
+        this.new_line();
+
+        this.create_input_box("Species 1 (Red) Speed:", "species1_speed", this.species1_speed);
+        this.create_input_box("Species 1 (Red) Size: ", "species1_size", this.species1_size);
+        this.create_input_box("Species 1 (Red) Spawn:", "species1_spawn_amt", this.species1_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 2 (Purple) Speed:", "species2_speed", this.species2_speed);
+        this.create_input_box("Species 2 (Purple) Size: ", "species2_size", this.species2_size);
+        this.create_input_box("Species 2 (Purple) Spawn: ", "species2_spawn_amt", this.species2_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 3 (Yellow) Speed:", "species3_speed", this.species3_speed);
+        this.create_input_box("Species 3 (Yellow) Size: ", "species3_size", this.species3_size);
+        this.create_input_box("Species 3 (Yellow) Spawn: ", "species3_spawn_amt", this.species3_spawn_amt);
+        this.new_line();
+        this.create_input_box("Species 4 (Blue) Speed:", "species4_speed", this.species4_speed);
+        this.create_input_box("Species 4 (Blue) Size: ", "species4_size", this.species4_size);
+        this.create_input_box("Species 4 (Blue) Spawn: ", "species4_spawn_amt", this.species4_spawn_amt);
         this.new_line();
         this.key_triggered_button("Play/Pause Simulation", ["p"], () => {
             this.paused = !this.paused;
+            this.pressed_play = true;
         });
+        this.new_line();
+
     }
 
+    calculate_avg_traits() {
+        let species_counts = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+        let total_speeds = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+        let total_sizes = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+        for (let minion of this.minions) {
+            species_counts[minion.species]++;
+            total_speeds[minion.species] += minion.speed;
+            total_sizes[minion.species] += 2*minion.radius;
+        }
+        this.species1_avg_speed = (total_speeds["species1"]/species_counts["species1"]).toFixed(2);
+        this.species2_avg_speed = (total_speeds["species2"]/species_counts["species2"]).toFixed(2);
+        this.species3_avg_speed = (total_speeds["species3"]/species_counts["species3"]).toFixed(2);
+        this.species4_avg_speed = (total_speeds["species4"]/species_counts["species4"]).toFixed(2);
+        this.species1_avg_size = (total_sizes["species1"]/species_counts["species1"]).toFixed(2);
+        this.species2_avg_size = (total_sizes["species2"]/species_counts["species2"]).toFixed(2);
+        this.species3_avg_size = (total_sizes["species3"]/species_counts["species3"]).toFixed(2);
+        this.species4_avg_size = (total_sizes["species4"]/species_counts["species4"]).toFixed(2);
+    }
+    reset_minions() {
+        this.minions_are_reset = true;
+        this.minions = [];
+        this.minion_positions = this.generate_minion_spawn_positions();
+        
+        const colors = ["species1", "species2", "species3", "species4"];
+        const edges = ["top", "bottom", "left", "right"];
+
+        
+        let speciesCount = {
+            species1: 0,
+            species2: 0,
+            species3: 0,
+            species4: 0
+        };
+
+        for (let i = 0; i < edges.length; i++) {
+            for (let j = 0; j < this.minion_positions[edges[i]].length; j++) {
+                let minion = new Minion(colors[i]);
+                minion.position = this.minion_positions[edges[i]][j];
+                minion.color = this.materials[colors[i]];
+                this.minions.push(minion);
+
+                speciesCount[colors[i]]++;
+
+            }
+        }
+        let maxSpecies = colors[0];
+        for (let i = 1; i < colors.length; i++) {
+            if (speciesCount[colors[i]] > speciesCount[maxSpecies]) {
+                maxSpecies = colors[i];
+            }
+        }
+
+        this.minion_reset_max = maxSpecies
+    }
+
+    
     draw_grass(context, program_state) {
         let surface_transform = Mat4.identity()
             .times(Mat4.scale(this.map_size,this.map_size,this.map_size))
@@ -204,16 +354,42 @@ export class NatureNavigators extends Scene {
         let bar_width = 1;
         let bar_gap = 8.75;
         // let max_bar_height = 4; // Maximum bar height
-        let total_minions_alive = this.minions.length / species.length;
-
-        // console.log("NEW MINION COUNT ", this.new_minion_count)
+        // let total_minions_alive = this.minions.length / species.length;
 
 
+        // console.log(species_counts)
+
+        this.new_day_minion_max = Math.max(...Object.values(species_counts));
+
+
+        if (this.count > 0) {
+            this.new_day_minion_max = Math.max(...Object.values(species_counts));
+            // console.log("MADE IT HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", this.count)
+            // console.log("LOOK AT MAXXXXXXX", this.new_day_minion_max)
+
+            this.count = 0;
+        }
+        // console.log("Max", this.new_day_minion_max)
+        // console.log("count", this.count)
 
         for (let i = 0; i < species.length; i++) {
             let species_name = species[i];
             // let bar_height = (species_counts[species_name] / species.length) * max_bar_height;
-            let y_scale = (species_counts[species_name] / this.new_minion_count[species_name]);
+
+            let y_scale = 0;
+            if (this.new_day_minion_max != -1) {
+                y_scale = (species_counts[species_name] / this.new_day_minion_max);
+            }
+            else {
+                y_scale = (species_counts[species_name] / this.minion_reset_max)
+            }
+            // console.log("Y scale", y_scale)
+
+
+            // console.log("species_counts[species_name]: ", species_counts[species_name])
+            // console.log("species.length: ", species.length)
+            // console.log("total_minions_alive", total_minions_alive)
+            // console.log("y_scale: ", y_scale)
 
             let bar_transform = Mat4.identity()
                 .times(Mat4.translation(
@@ -348,6 +524,17 @@ export class NatureNavigators extends Scene {
 
     check_new_day() {
         // there is a new day once every this.day_length seconds
+        if (Math.floor(this.t + 1) % this.day_length == 0
+            && this.day <= Math.floor(this.t/this.day_length)) {
+            this.day += 1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    check_new_day_graphs() {
+        // there is a new day once every this.day_length seconds
         if (Math.floor(this.t) % this.day_length == 0
             && this.day <= Math.floor(this.t/this.day_length)) {
             this.day += 1;
@@ -359,6 +546,7 @@ export class NatureNavigators extends Scene {
 
     setup_new_day(context,program_state) {
         this.minions_reproduce();
+
     }
 
     update_minion_health() {
@@ -370,7 +558,9 @@ export class NatureNavigators extends Scene {
             minion.energy -= 0.5 * minion.radius * minion.speed**2 * time_passed ; // KE = 0.5mv^2
             // check if any minions have died from losing all energy
             if (minion.energy <= 0) {
-                remaining_minions = remaining_minions.splice(i,1);
+                //MEMORY LEAK ISSUE???
+                this.minions.splice(i, 1); // Remove minion from array
+                //remaining_minions = remaining_minions.splice(i,1);
                 this.dead_minion_positions.push(minion.position);
             }
         }
@@ -395,6 +585,7 @@ export class NatureNavigators extends Scene {
         new_minion.speed = minion.speed;
         new_minion.species = minion.species;
         new_minion.energy = (new_size/minion.radius) * minion.energy + 1;
+        new_minion.species_radius = new_size;
         return new_minion;
     }
 
@@ -404,32 +595,44 @@ export class NatureNavigators extends Scene {
             let minion = this.minions[i];
             switch(minion.species) {
                 case "species1":
-                    minion.speed = this.species1_speed;
-                    if (minion.radius * 2 != this.species1_size) {
+                    if (minion.species_speed != this.species1_speed) {
+                        minion.speed = this.species1_speed;
+                        minion.species_speed = this.species1_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species1_size) {
                         let new_minion = this.change_minion_size(minion,this.species1_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species2":
-                    minion.speed = this.species2_speed;
-                    if (minion.radius * 2 != this.species2_size) {
+                    if (minion.species_speed != this.species2_speed) {
+                        minion.speed = this.species2_speed;
+                        minion.species_speed = this.species2_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species2_size) {
                         let new_minion = this.change_minion_size(minion,this.species2_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species3":
-                    minion.speed = this.species3_speed;
-                    if (minion.radius * 2 != this.species3_size) {
+                    if (minion.species_speed != this.species3_speed) {
+                        minion.speed = this.species3_speed;
+                        minion.species_speed = this.species3_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species3_size) {
                         let new_minion = this.change_minion_size(minion,this.species3_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
                     }
                     break;
                 case "species4":
-                    minion.speed = this.species4_speed;
-                    if (minion.radius * 2 != this.species4_size) {
+                    if (minion.species_speed != this.species4_speed) {
+                        minion.speed = this.species4_speed;
+                        minion.species_speed = this.species4_speed;
+                    }
+                    if (minion.species_radius * 2 != this.species4_size) {
                         let new_minion = this.change_minion_size(minion,this.species4_size/2);
                         updated_minions.push(new_minion);
                         updated_minions = updated_minions.splice(i,1);
@@ -442,27 +645,21 @@ export class NatureNavigators extends Scene {
     minions_reproduce() {
         for (let minion of this.minions) {
             if (minion.energy > minion.starting_energy) {
-                let new_minion = new Minion(minion.color);
+                let new_minion = new Minion(minion.species, Math.max(minion.radius + this.mutation_factor(), 0.1));
                 new_minion.position = minion.position.plus(vec3(0,0,0).minus(minion.position).normalized().times(0.05));
                 new_minion.color = minion.color;
-                new_minion.speed = minion.speed;
-                
+                new_minion.speed = Math.max(minion.speed + this.mutation_factor(), 0.1);
                 new_minion.species = minion.species;
-                
+                new_minion.species_radius = minion.species_radius;
+                new_minion.species_speed = minion.species_speed;
                 minion.energy -= minion.starting_energy;
-
                 this.minions.push(new_minion);
-
-                if (this.new_minion_count.hasOwnProperty(new_minion.species)) {
-                    this.new_minion_count[new_minion.species]++;
-                } else {
-                    console.error("Unknown species: " + new_minion.species);
-                }
-                
-
             }
         }
+    }
 
+    mutation_factor() { // return a random mutation factor between -this.mutation_rate and this.mutation_rate
+        return (Math.random() - 0.5) * 2 * this.mutation_rate;
     }
 
     grow_food() {
@@ -471,6 +668,7 @@ export class NatureNavigators extends Scene {
             this.last_food_grown_time = this.t;
         }
     }
+
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
@@ -491,7 +689,15 @@ export class NatureNavigators extends Scene {
 
         if (this.check_new_day()) {
             this.setup_new_day(context,program_state);
+
         }
+
+        if (this.check_new_day_graphs()) {
+            this.setup_new_day(context,program_state);
+            this.count++;
+            // console.log("WENT INTO THE CHECKER")
+        }
+
         this.draw_sun(context,program_state);
         this.draw_grass(context,program_state);
         this.draw_food(context,program_state);
@@ -501,9 +707,8 @@ export class NatureNavigators extends Scene {
         this.grow_food();
         this.update_minion_traits();
         this.update_minion_health();
-        
+        this.calculate_avg_traits();
         this.last_t = t;
-
         this.draw_graph(context,program_state);
 
 
