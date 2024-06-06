@@ -424,6 +424,8 @@ export class NatureNavigators extends Scene {
 
     draw_sun(context, program_state) {
         let n =  -Math.PI/2 * Math.cos((this.t % this.day_length)*Math.PI/this.day_length);
+        let t = this.t % this.day_length;
+        let sun_intensity = Math.sin(t*Math.PI/this.day_length);
 
         let translationMatrix = Mat4.translation(0, this.sun_rad, 0);
         let rotationMatrix = Mat4.rotation(n, 0, 0, 1);
@@ -435,7 +437,7 @@ export class NatureNavigators extends Scene {
         let sun_position = Mat4.identity()
             .times(Mat4.rotation(n,0,0,1))
             .times(Mat4.translation(0,this.sun_rad,0));
-        program_state.lights = [new Light(sun_light_position, color(1, 1, 1, 1), 10000)];
+        program_state.lights = [new Light(sun_light_position, color(1, 1, 1, 1), sun_intensity*1000)];
         this.shapes.sun.draw(context, program_state, sun_position, this.materials.sunMat);
     }
 
