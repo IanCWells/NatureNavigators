@@ -38,6 +38,8 @@ const Minion = minion_defs.Minion =
             this.starting_energy = 10*2*radius;
             this.energy = this.starting_energy;
 
+            this.sight = 30;
+
             this.xProb_adjustment = 0;
             this.zProb_adjustment = 0;
             this.position = vec3(0, 0, 0);
@@ -72,6 +74,22 @@ const Minion = minion_defs.Minion =
 
         }
 
+        randomMovement(){
+            let movement_prob = Math.random();
+            let min_speed = 0.04;
+            if(movement_prob >= 0 && movement_prob < 0.25){
+                return vec3(min_speed, 0, min_speed);
+            }
+            else if(movement_prob >= 0.25 && movement_prob < 0.5){
+                return vec3(-min_speed, 0, min_speed);
+            }
+            else if(movement_prob >= 0.5 && movement_prob < 0.75){
+                return vec3(min_speed, 0, -min_speed);
+            }
+            else if(movement_prob >= 0.75 && movement_prob < 1){
+                return vec3(-min_speed, 0, -min_speed);
+            }
+        }
 
         movement() {
             let movement_prob = Math.random();
