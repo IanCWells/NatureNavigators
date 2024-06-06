@@ -339,9 +339,8 @@ export class NatureNavigators extends Scene {
             else {
                 y_scale = (species_counts[species_name] / this.minion_reset_max)
             }
+
             // console.log("Y scale", y_scale)
-
-
             // console.log("species_counts[species_name]: ", species_counts[species_name])
             // console.log("species.length: ", species.length)
             // console.log("total_minions_alive", total_minions_alive)
