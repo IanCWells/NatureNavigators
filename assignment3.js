@@ -640,12 +640,13 @@ export class NatureNavigators extends Scene {
         var remaining_minions = this.minions;
         for (var i = 0; i < this.minions.length; i++) {
             let minion = this.minions[i];
-            minion.energy -= 0.5 * minion.radius * minion.speed**2 * time_passed * Math.floor(minion.sight / 10); // KE = 0.5mv^2
+            minion.energy -= 0.5 * minion.radius * minion.speed**2 * time_passed; // KE = 0.5mv^2
+            minion.energy -= 0.05 * time_passed * Math.floor(minion.sight / 10);
             // check if any minions have died from losing all energy
             if (minion.energy <= 0) {
                 //MEMORY LEAK ISSUE???
-                this.minions.splice(i, 1); // Remove minion from array
-                //remaining_minions = remaining_minions.splice(i,1);
+                //this.minions.splice(i, 1); // Remove minion from array
+                remaining_minions = remaining_minions.splice(i,1);
             }
         }
         this.last_update_time = this.t;
